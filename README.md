@@ -23,15 +23,13 @@ s'activent uniquement si une connexion Internet est disponible.
 - ✅ Export PDF et Word
 - ✅ Interface bilingue FR/EN
 - ✅ Stockage 100% local (JSON), aucune dépendance réseau pour l'usage de base
-- ✅ Squelette agent conversationnel (texte) — actif si `ANTHROPIC_API_KEY` est configurée et une connexion est détectée
+- ✅ Agent conversationnel **multi-tours avec tool-calling réel** — actif si `ANTHROPIC_API_KEY` est configurée et une connexion est détectée. Il enregistre les informations mentionnées, relance sur les branches manquantes, et signale lui-même quand le diagnostic est prêt pour l'analyse
 - ✅ Squelette transcription audio en ligne et hors-ligne (voir `audio/`)
 
-## Roadmap (V2)
+## Roadmap (V3)
 
-- Agent conversationnel complet en mode "tool-calling" multi-tours (orchestration
-  automatique des 4 outils d'analyse depuis la conversation)
-- Enregistrement audio direct dans le navigateur + transcription → pré-remplissage
-  automatique du formulaire, avec validation humaine systématique
+- Enregistrement audio direct dans le navigateur (`st.audio_input`) + transcription → pré-remplissage
+  automatique du formulaire via le même agent conversationnel, avec validation humaine systématique
 - Synchronisation optionnelle vers un espace cloud partagé entre conseillers
 
 ## Démo en ligne

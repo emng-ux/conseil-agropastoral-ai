@@ -174,19 +174,50 @@ def page_collecte():
         st.plotly_chart(_radar_chart(diagnostic), use_container_width=True)
 
         if st.session_state.online:
-            from agent.orchestrator import agent_available, extract_fields_from_message, apply_updates
+            from agent.orchestrator import agent_available, run_turn
             if agent_available():
                 st.markdown(f"**{_('nav_collecte')} — 🤖**")
+
+                chat_key = f"chat_history_{st.session_state.current_diagnostic_id}"
+                if chat_key not in st.session_state:
+                    st.session_state[chat_key] = []
+
+                # Affiche l'historique de la conversation (messages texte uniquement,
+                # les blocs tool_use/tool_result internes ne sont pas montrés au conseiller)
+                for msg in st.session_state[chat_key]:
+                    if msg["role"] == "user" and isinstance(msg["content"], str):
+                        with st.chat_message("user"):
+                            st.markdown(msg["content"])
+                    elif msg["role"] == "assistant":
+                        content = msg["content"]
+                        text_parts = []
+                        if isinstance(content, list):
+                            for b in content:
+                                if isinstance(b, dict) and b.get("type") == "text":
+                                    text_parts.append(b.get("text", ""))
+                                elif getattr(b, "type", "") == "text":
+                                    text_parts.append(getattr(b, "text", ""))
+                        if text_parts:
+                            with st.chat_message("assistant"):
+                                st.markdown("\n".join(text_parts))
+
                 message = st.chat_input(_("chat_placeholder"))
                 if message:
                     try:
-                        result = extract_fields_from_message(message, diagnostic, lang)
-                        apply_updates(diagnostic, result.get("updates", {}))
+                        result = run_turn(st.session_state[chat_key], message, diagnostic, lang)
+                        st.session_state[chat_key] = result["conversation_history"]
                         st.session_state.current_diagnostic = diagnostic
-                        st.success(result.get("reply", ""))
+                        save_diagnostic(st.session_state.current_diagnostic_id, diagnostic)
+                        if result["ready_for_analysis"]:
+                            st.session_state.chat_ready_for_analysis = True
                         st.rerun()
                     except Exception as e:
                         st.error(str(e))
+
+                if st.session_state.get("chat_ready_for_analysis"):
+                    st.success("✅ " + ("Diagnostic prêt : va dans l'onglet Analyse stratégique."
+                                         if lang == "fr" else
+                                         "Diagnostic ready: go to the Strategic analysis tab."))
         else:
             st.info(_("chat_unavailable_offline"))
 
