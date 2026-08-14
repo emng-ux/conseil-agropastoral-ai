@@ -1,0 +1,135 @@
+{
+  "branches": {
+    "moyens_production": {
+      "label": {"fr": "Moyens de production", "en": "Production resources"},
+      "icon": "🌾",
+      "fields": [
+        {"id": "superficie_totale", "type": "number", "unit_fr": "ha", "unit_en": "ha",
+         "label": {"fr": "Superficie totale exploitée", "en": "Total farmed area"}},
+        {"id": "superficie_cultivee", "type": "number", "unit_fr": "ha", "unit_en": "ha",
+         "label": {"fr": "Superficie cultivée", "en": "Cultivated area"}},
+        {"id": "main_oeuvre_familiale", "type": "number", "unit_fr": "personnes", "unit_en": "people",
+         "label": {"fr": "Main d'œuvre familiale disponible", "en": "Available family labour"}},
+        {"id": "main_oeuvre_salariee", "type": "number", "unit_fr": "personnes", "unit_en": "people",
+         "label": {"fr": "Main d'œuvre salariée", "en": "Hired labour"}},
+        {"id": "cheptel", "type": "textarea",
+         "label": {"fr": "Cheptel (espèces et effectifs)", "en": "Livestock (species and numbers)"}},
+        {"id": "equipements", "type": "textarea",
+         "label": {"fr": "Équipements et infrastructures", "en": "Equipment and infrastructure"}},
+        {"id": "acces_intrants", "type": "select",
+         "options": {"fr": ["Facile", "Moyen", "Difficile"], "en": ["Easy", "Moderate", "Difficult"]},
+         "label": {"fr": "Accès aux intrants", "en": "Access to inputs"}},
+        {"id": "acces_eau", "type": "select",
+         "options": {"fr": ["Irrigation disponible", "Pluvial uniquement", "Accès limité"],
+                     "en": ["Irrigation available", "Rainfed only", "Limited access"]},
+         "label": {"fr": "Accès à l'eau", "en": "Access to water"}}
+      ]
+    },
+    "performances_technico_eco": {
+      "label": {"fr": "Performances technico-économiques", "en": "Technical & economic performance"},
+      "icon": "📊",
+      "fields": [
+        {"id": "rendements", "type": "textarea",
+         "label": {"fr": "Rendements par spéculation (unité/ha ou /tête)",
+                   "en": "Yields per activity (unit/ha or /head)"}},
+        {"id": "taux_perte_post_recolte", "type": "number", "unit_fr": "%", "unit_en": "%",
+         "label": {"fr": "Taux de pertes post-récolte", "en": "Post-harvest loss rate"}},
+        {"id": "productivite_travail", "type": "textarea",
+         "label": {"fr": "Productivité du travail (observations)", "en": "Labour productivity (notes)"}},
+        {"id": "itineraires_techniques", "type": "select",
+         "options": {"fr": ["Conforme aux bonnes pratiques", "Partiellement conforme", "Non conforme"],
+                     "en": ["Compliant with best practice", "Partially compliant", "Not compliant"]},
+         "label": {"fr": "Respect des itinéraires techniques", "en": "Technical itinerary compliance"}},
+        {"id": "diversification_activites", "type": "textarea",
+         "label": {"fr": "Liste des activités/spéculations (une par ligne)",
+                   "en": "List of activities/products (one per line)"}}
+      ]
+    },
+    "finances": {
+      "label": {"fr": "Finances", "en": "Finance"},
+      "icon": "💰",
+      "fields": [
+        {"id": "chiffre_affaires", "type": "number", "unit_fr": "FCFA/an", "unit_en": "XAF/year",
+         "label": {"fr": "Chiffre d'affaires annuel", "en": "Annual revenue"}},
+        {"id": "charges_exploitation", "type": "number", "unit_fr": "FCFA/an", "unit_en": "XAF/year",
+         "label": {"fr": "Charges d'exploitation annuelles", "en": "Annual operating costs"}},
+        {"id": "endettement", "type": "number", "unit_fr": "FCFA", "unit_en": "XAF",
+         "label": {"fr": "Niveau d'endettement", "en": "Debt level"}},
+        {"id": "acces_financement", "type": "select",
+         "options": {"fr": ["Bon (crédit/épargne accessible)", "Moyen", "Faible/inexistant"],
+                     "en": ["Good (credit/savings accessible)", "Moderate", "Low/none"]},
+         "label": {"fr": "Accès au financement", "en": "Access to financing"}},
+        {"id": "tresorerie", "type": "select",
+         "options": {"fr": ["Excédentaire", "Équilibrée", "Tendue"],
+                     "en": ["Surplus", "Balanced", "Tight"]},
+         "label": {"fr": "Situation de trésorerie", "en": "Cash flow situation"}},
+        {"id": "epargne", "type": "textarea",
+         "label": {"fr": "Capacité d'épargne / réinvestissement", "en": "Savings / reinvestment capacity"}}
+      ]
+    },
+    "milieu_local": {
+      "label": {"fr": "Milieu local", "en": "Local environment"},
+      "icon": "🌍",
+      "fields": [
+        {"id": "climat", "type": "textarea",
+         "label": {"fr": "Caractéristiques climatiques et risques (sécheresse, inondation...)",
+                   "en": "Climate characteristics and risks (drought, flooding...)"}},
+        {"id": "sols", "type": "textarea",
+         "label": {"fr": "Qualité et état des sols", "en": "Soil quality and condition"}},
+        {"id": "infrastructures_locales", "type": "textarea",
+         "label": {"fr": "Infrastructures (routes, électricité, stockage...)",
+                   "en": "Infrastructure (roads, electricity, storage...)"}},
+        {"id": "organisation_sociale", "type": "textarea",
+         "label": {"fr": "Organisation sociale et communautaire locale",
+                   "en": "Local social and community organisation"}},
+        {"id": "securite_fonciere", "type": "select",
+         "options": {"fr": ["Sécurisé (titre/attestation)", "Coutumier", "Précaire/en litige"],
+                     "en": ["Secure (title/certificate)", "Customary", "Precarious/disputed"]},
+         "label": {"fr": "Sécurité foncière", "en": "Land tenure security"}}
+      ]
+    },
+    "marche": {
+      "label": {"fr": "Marché", "en": "Market"},
+      "icon": "🛒",
+      "fields": [
+        {"id": "debouches", "type": "textarea",
+         "label": {"fr": "Débouchés actuels (acheteurs, circuits de commercialisation)",
+                   "en": "Current outlets (buyers, marketing channels)"}},
+        {"id": "nombre_concurrents", "type": "select",
+         "options": {"fr": ["Peu nombreux", "Nombre moyen", "Très nombreux"],
+                     "en": ["Few", "Moderate number", "Very many"]},
+         "label": {"fr": "Intensité de la concurrence locale", "en": "Local competition intensity"}},
+        {"id": "volatilite_prix", "type": "select",
+         "options": {"fr": ["Stable", "Modérément variable", "Très volatile"],
+                     "en": ["Stable", "Moderately variable", "Highly volatile"]},
+         "label": {"fr": "Volatilité des prix", "en": "Price volatility"}},
+        {"id": "pouvoir_negociation", "type": "select",
+         "options": {"fr": ["Fort", "Moyen", "Faible"], "en": ["Strong", "Moderate", "Weak"]},
+         "label": {"fr": "Pouvoir de négociation face aux acheteurs",
+                   "en": "Bargaining power against buyers"}},
+        {"id": "activites", "type": "activity_list",
+         "label": {"fr": "Activités/produits (pour la matrice BCG)",
+                   "en": "Activities/products (for the BCG matrix)"}}
+      ]
+    },
+    "politiques_publiques": {
+      "label": {"fr": "Politiques publiques", "en": "Public policies"},
+      "icon": "🏛️",
+      "fields": [
+        {"id": "subventions", "type": "textarea",
+         "label": {"fr": "Subventions et appuis publics disponibles",
+                   "en": "Available subsidies and public support"}},
+        {"id": "reglementation", "type": "textarea",
+         "label": {"fr": "Réglementations impactant l'activité (foncier, sanitaire, commerce...)",
+                   "en": "Regulations affecting the activity (land, health, trade...)"}},
+        {"id": "fiscalite", "type": "select",
+         "options": {"fr": ["Favorable", "Neutre", "Contraignante"],
+                     "en": ["Favourable", "Neutral", "Restrictive"]},
+         "label": {"fr": "Fiscalité applicable", "en": "Applicable taxation"}},
+        {"id": "programmes_appui", "type": "textarea",
+         "label": {"fr": "Programmes/projets d'appui présents dans la zone",
+                   "en": "Support programmes/projects present in the area"}}
+      ]
+    }
+  }
+}
