@@ -55,6 +55,8 @@
   "validated_by": "Validated by",
   "download_pdf": "⬇️ Download PDF",
   "download_word": "⬇️ Download Word",
+  "download_diagnostic_pdf": "⬇️ Diagnostic (PDF)",
+  "download_diagnostic_word": "⬇️ Diagnostic (Word)",
   "validation_required": "Advisor validation is required before the plan can be downloaded.",
   "branch_completion": "Filled in",
   "field_required_hint": "Some fields are empty — not blocking, but it reduces analysis quality.",

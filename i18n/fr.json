@@ -55,6 +55,8 @@
   "validated_by": "Validé par",
   "download_pdf": "⬇️ Télécharger le PDF",
   "download_word": "⬇️ Télécharger le Word",
+  "download_diagnostic_pdf": "⬇️ Diagnostic (PDF)",
+  "download_diagnostic_word": "⬇️ Diagnostic (Word)",
   "validation_required": "La validation du conseiller est requise avant de pouvoir télécharger le plan.",
   "branch_completion": "Renseigné",
   "field_required_hint": "Certains champs sont vides — ce n'est pas bloquant mais réduit la qualité de l'analyse.",

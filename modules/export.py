@@ -153,3 +153,99 @@ def export_pdf_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict 
         pdf.line(text, height=7)
 
     return bytes(pdf.output())
+
+
+# ---------------------------------------------------------------------------
+# Export du diagnostic brut (données de l'étoile du conseil), indépendant du
+# plan stratégique. Pas de contrainte de validation ici : ce n'est pas une
+# recommandation, seulement les données collectées telles quelles.
+# ---------------------------------------------------------------------------
+
+def export_diagnostic_word_bytes(diagnostic: dict, lang: str = "fr") -> bytes:
+    """Exporte les données brutes du diagnostic (étoile du conseil) en Word."""
+    from modules.collecte import load_schema
+
+    doc = Document()
+    title = "Diagnostic — Étoile du conseil" if lang == "fr" else "Diagnostic — Advisory star"
+    doc.add_heading(title, level=0)
+
+    doc.add_paragraph(f"{'Exploitation / OP' if lang == 'fr' else 'Farm / PO'}: {diagnostic.get('nom', '')}")
+    doc.add_paragraph(f"{'Type' if lang == 'fr' else 'Type'}: {diagnostic.get('type', '')}")
+    doc.add_paragraph(f"{'Conseiller' if lang == 'fr' else 'Advisor'}: {diagnostic.get('conseiller', '')}")
+
+    schema = load_schema()["branches"]
+    etoile = diagnostic.get("etoile", {})
+
+    for branch_key, branch in schema.items():
+        doc.add_heading(branch["label"].get(lang, branch["label"]["fr"]), level=1)
+        branch_data = etoile.get(branch_key, {})
+        for field in branch["fields"]:
+            label = field["label"].get(lang, field["label"]["fr"])
+            value = branch_data.get(field["id"], "")
+            if field["type"] == "activity_list":
+                if value:
+                    doc.add_paragraph(label + " :", style="Intense Quote")
+                    for act in value:
+                        doc.add_paragraph(
+                            f"{act.get('nom', '')} — part de marché relative : "
+                            f"{act.get('part_marche_relative', '')}, croissance : "
+                            f"{act.get('taux_croissance', '')}%",
+                            style="List Bullet")
+                continue
+            if value in (None, "", 0, 0.0):
+                continue
+            unit = field.get(f"unit_{lang}") or field.get("unit_fr", "")
+            value_str = f"{value} {unit}".strip() if field["type"] == "number" else str(value)
+            p = doc.add_paragraph()
+            p.add_run(f"{label} : ").bold = True
+            p.add_run(value_str)
+
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    return buffer.getvalue()
+
+
+def export_diagnostic_pdf_bytes(diagnostic: dict, lang: str = "fr") -> bytes:
+    """Exporte les données brutes du diagnostic (étoile du conseil) en PDF."""
+    from modules.collecte import load_schema
+
+    title = "Diagnostic - Etoile du conseil" if lang == "fr" else "Diagnostic - Advisory star"
+    pdf = _PDF()
+    pdf.title_text = title
+    pdf.add_page()
+    pdf.set_font("Helvetica", size=11)
+
+    pdf.line(f"{'Exploitation / OP' if lang == 'fr' else 'Farm / PO'}: {diagnostic.get('nom', '')}")
+    pdf.line(f"Type: {diagnostic.get('type', '')}")
+    pdf.line(f"{'Conseiller' if lang == 'fr' else 'Advisor'}: {diagnostic.get('conseiller', '')}")
+    pdf.ln(4)
+
+    schema = load_schema()["branches"]
+    etoile = diagnostic.get("etoile", {})
+
+    for branch_key, branch in schema.items():
+        pdf.set_font("Helvetica", "B", 13)
+        pdf.title_line(branch["label"].get(lang, branch["label"]["fr"]))
+        pdf.set_font("Helvetica", size=10)
+        branch_data = etoile.get(branch_key, {})
+        any_field = False
+        for field in branch["fields"]:
+            label = field["label"].get(lang, field["label"]["fr"])
+            value = branch_data.get(field["id"], "")
+            if field["type"] == "activity_list":
+                for act in value or []:
+                    any_field = True
+                    pdf.line(f"- {label} : {act.get('nom', '')} (part {act.get('part_marche_relative', '')}, "
+                             f"croissance {act.get('taux_croissance', '')}%)", height=6)
+                continue
+            if value in (None, "", 0, 0.0):
+                continue
+            any_field = True
+            unit = field.get(f"unit_{lang}") or field.get("unit_fr", "")
+            value_str = f"{value} {unit}".strip() if field["type"] == "number" else str(value)
+            pdf.line(f"- {label} : {value_str}", height=6)
+        if not any_field:
+            pdf.line("-", height=6)
+        pdf.ln(2)
+
+    return bytes(pdf.output())

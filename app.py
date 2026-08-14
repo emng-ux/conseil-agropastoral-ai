@@ -25,6 +25,20 @@ from modules.export import export_pdf_bytes, export_word_bytes, ExportNotAllowed
 
 st.set_page_config(page_title="Conseil Agropastoral IA", page_icon="🌿", layout="wide")
 
+# Sécurise la lecture des secrets (clés API) : sur certaines configurations de
+# Streamlit Cloud, les secrets ne sont accessibles que via st.secrets et pas
+# automatiquement copiés dans os.environ. On les recopie explicitement ici pour
+# que agent/orchestrator.py et audio/transcription_online.py (qui lisent
+# os.environ) fonctionnent de façon fiable, en local comme en ligne.
+import os
+for _secret_key in ("ANTHROPIC_API_KEY", "TRANSCRIPTION_API_KEY"):
+    if _secret_key not in os.environ:
+        try:
+            if _secret_key in st.secrets:
+                os.environ[_secret_key] = st.secrets[_secret_key]
+        except Exception:
+            pass  # pas de fichier secrets.toml en local : comportement normal, on ignore
+
 # ---------------------------------------------------------------------------
 # État de session
 # ---------------------------------------------------------------------------
@@ -230,6 +244,20 @@ def page_collecte():
         if st.button(_("save"), type="primary"):
             save_diagnostic(st.session_state.current_diagnostic_id, diagnostic)
             st.success(_("saved"))
+
+        st.markdown("---")
+        from modules.export import export_diagnostic_pdf_bytes, export_diagnostic_word_bytes
+        dl_col1, dl_col2 = st.columns(2)
+        dl_col1.download_button(
+            _("download_diagnostic_pdf"),
+            data=export_diagnostic_pdf_bytes(diagnostic, lang),
+            file_name=f"diagnostic_{diagnostic.get('nom', 'export')}.pdf",
+            mime="application/pdf")
+        dl_col2.download_button(
+            _("download_diagnostic_word"),
+            data=export_diagnostic_word_bytes(diagnostic, lang),
+            file_name=f"diagnostic_{diagnostic.get('nom', 'export')}.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
 # ---------------------------------------------------------------------------
