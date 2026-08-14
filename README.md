@@ -22,6 +22,7 @@ s'activent uniquement si une connexion Internet est disponible.
 - ✅ Génération d'un plan stratégique + plan d'actions éditable
 - ✅ **Validation obligatoire du conseiller** avant tout téléchargement
 - ✅ Export PDF et Word
+- ✅ **Protection des données** : chaque diagnostic reçoit un code d'identifiant (ex. `DIAG-2026-0007`) ; seul ce code est affiché par défaut dans l'interface et les documents exportés — le nom réel de l'EFA/OP reste masqué sauf activation explicite
 - ✅ Interface bilingue FR/EN
 - ✅ Stockage 100% local (JSON), aucune dépendance réseau pour l'usage de base
 - ✅ Agent conversationnel **multi-tours avec tool-calling réel** — actif si `ANTHROPIC_API_KEY` est configurée et une connexion est détectée. Il enregistre les informations mentionnées, relance sur les branches manquantes, et signale lui-même quand le diagnostic est prêt pour l'analyse

@@ -21,14 +21,28 @@ def _check_validated(diagnostic: dict):
             "Le plan doit être validé par le conseiller avant export.")
 
 
-def export_word_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict = None) -> bytes:
+def _identity_label(diagnostic: dict, lang: str, include_real_name: bool) -> str:
+    """Protection des données : par défaut, seul le code d'identifiant du
+    diagnostic apparaît dans les documents exportés — jamais le nom réel de
+    l'EFA/OP, sauf si le conseiller a explicitement demandé de l'inclure
+    (usage strictement interne)."""
+    prefix = "Exploitation / OP" if lang == "fr" else "Farm / PO"
+    code = diagnostic.get("code", "")
+    if include_real_name:
+        nom = diagnostic.get("nom", "")
+        return f"{prefix}: {code} - {nom}"
+    return f"{prefix}: {code}"
+
+
+def export_word_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict = None,
+                       include_real_name: bool = False) -> bytes:
     _check_validated(diagnostic)
     doc = Document()
 
     title = "Plan stratégique et plan d'actions" if lang == "fr" else "Strategic plan and action plan"
     doc.add_heading(title, level=0)
 
-    doc.add_paragraph(f"{'Exploitation / OP' if lang == 'fr' else 'Farm / PO'}: {diagnostic.get('nom', '')}")
+    doc.add_paragraph(_identity_label(diagnostic, lang, include_real_name))
     doc.add_paragraph(f"{'Conseiller' if lang == 'fr' else 'Advisor'}: {diagnostic.get('conseiller', '')}")
 
     validation = diagnostic.get("validation", {})
@@ -96,7 +110,8 @@ class _PDF(FPDF):
         self.cell(0, 8, text, new_x="LMARGIN", new_y="NEXT")
 
 
-def export_pdf_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict = None) -> bytes:
+def export_pdf_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict = None,
+                      include_real_name: bool = False) -> bytes:
     _check_validated(diagnostic)
 
     title = "Plan strategique et plan d'actions" if lang == "fr" else "Strategic plan and action plan"
@@ -105,7 +120,7 @@ def export_pdf_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict 
     pdf.add_page()
     pdf.set_font("Helvetica", size=11)
 
-    pdf.line(f"{'Exploitation / OP' if lang == 'fr' else 'Farm / PO'}: {diagnostic.get('nom', '')}")
+    pdf.line(_identity_label(diagnostic, lang, include_real_name))
     pdf.line(f"{'Conseiller' if lang == 'fr' else 'Advisor'}: {diagnostic.get('conseiller', '')}")
 
     validation = diagnostic.get("validation", {})
@@ -161,7 +176,8 @@ def export_pdf_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict 
 # recommandation, seulement les données collectées telles quelles.
 # ---------------------------------------------------------------------------
 
-def export_diagnostic_word_bytes(diagnostic: dict, lang: str = "fr") -> bytes:
+def export_diagnostic_word_bytes(diagnostic: dict, lang: str = "fr",
+                                  include_real_name: bool = False) -> bytes:
     """Exporte les données brutes du diagnostic (étoile du conseil) en Word."""
     from modules.collecte import load_schema
 
@@ -169,7 +185,7 @@ def export_diagnostic_word_bytes(diagnostic: dict, lang: str = "fr") -> bytes:
     title = "Diagnostic — Étoile du conseil" if lang == "fr" else "Diagnostic — Advisory star"
     doc.add_heading(title, level=0)
 
-    doc.add_paragraph(f"{'Exploitation / OP' if lang == 'fr' else 'Farm / PO'}: {diagnostic.get('nom', '')}")
+    doc.add_paragraph(_identity_label(diagnostic, lang, include_real_name))
     doc.add_paragraph(f"{'Type' if lang == 'fr' else 'Type'}: {diagnostic.get('type', '')}")
     doc.add_paragraph(f"{'Conseiller' if lang == 'fr' else 'Advisor'}: {diagnostic.get('conseiller', '')}")
 
@@ -205,7 +221,8 @@ def export_diagnostic_word_bytes(diagnostic: dict, lang: str = "fr") -> bytes:
     return buffer.getvalue()
 
 
-def export_diagnostic_pdf_bytes(diagnostic: dict, lang: str = "fr") -> bytes:
+def export_diagnostic_pdf_bytes(diagnostic: dict, lang: str = "fr",
+                                 include_real_name: bool = False) -> bytes:
     """Exporte les données brutes du diagnostic (étoile du conseil) en PDF."""
     from modules.collecte import load_schema
 
@@ -215,7 +232,7 @@ def export_diagnostic_pdf_bytes(diagnostic: dict, lang: str = "fr") -> bytes:
     pdf.add_page()
     pdf.set_font("Helvetica", size=11)
 
-    pdf.line(f"{'Exploitation / OP' if lang == 'fr' else 'Farm / PO'}: {diagnostic.get('nom', '')}")
+    pdf.line(_identity_label(diagnostic, lang, include_real_name))
     pdf.line(f"Type: {diagnostic.get('type', '')}")
     pdf.line(f"{'Conseiller' if lang == 'fr' else 'Advisor'}: {diagnostic.get('conseiller', '')}")
     pdf.ln(4)

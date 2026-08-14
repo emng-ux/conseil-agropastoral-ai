@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 
 from utils.i18n import t
 from utils.storage import (new_diagnostic_id, save_diagnostic, load_diagnostic,
-                            delete_diagnostic, list_diagnostics)
+                            delete_diagnostic, list_diagnostics, ensure_code)
 from utils.connectivity import is_online
 from modules.collecte import (branch_keys, branch_label, render_branch_form,
                                branch_completion_ratio)
@@ -60,6 +60,16 @@ def _(key):
     return t(key, lang)
 
 
+def display_label(diagnostic: dict) -> str:
+    """Protection des données : affiche le code d'identifiant par défaut, le nom
+    réel de l'EFA/OP seulement si le conseiller a explicitement activé le mode
+    'Afficher les noms' dans la barre latérale."""
+    code = diagnostic.get("code", "—")
+    if st.session_state.get("reveal_names"):
+        return f"{code} — {diagnostic.get('nom', '')}"
+    return code
+
+
 # ---------------------------------------------------------------------------
 # Barre latérale
 # ---------------------------------------------------------------------------
@@ -76,6 +86,12 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(_("online_status_online") if st.session_state.online else _("online_status_offline"))
+
+    st.markdown("---")
+    st.session_state.reveal_names = st.toggle(
+        _("reveal_names_toggle"), value=st.session_state.get("reveal_names", False))
+    if st.session_state.reveal_names:
+        st.caption(_("reveal_names_warning"))
 
     st.markdown("---")
     page_labels = {
@@ -114,7 +130,9 @@ def page_dashboard():
             with st.container(border=True):
                 c1, c2, c3 = st.columns([3, 1, 1])
                 status = "✅" if d["validated"] else "🕓"
-                c1.markdown(f"**{status} {d['nom']}** — {d['type']}  \n_{d['conseiller']}_")
+                name_display = (f"{d['code']} — {d['nom']}"
+                                 if st.session_state.get("reveal_names") else d["code"])
+                c1.markdown(f"**{status} {name_display}** — {d['type']}  \n_{d['conseiller']}_")
                 if c2.button(_("open"), key=f"open_{d['id']}"):
                     st.session_state.current_diagnostic_id = d["id"]
                     st.session_state.current_diagnostic = load_diagnostic(d["id"])
@@ -214,7 +232,8 @@ def _radar_chart(diagnostic):
 def page_collecte():
     _ensure_diagnostic()
     diagnostic = st.session_state.current_diagnostic
-    st.title(f"{_('nav_collecte')} — {diagnostic.get('nom', '')}")
+    ensure_code(diagnostic)
+    st.title(f"{_('nav_collecte')} — {display_label(diagnostic)}")
 
     col1, col2 = st.columns([1, 2])
     with col1:
@@ -280,16 +299,20 @@ def page_collecte():
 
         st.markdown("---")
         from modules.export import export_diagnostic_pdf_bytes, export_diagnostic_word_bytes
+        include_name_collecte = st.checkbox(_("include_real_name_export"), value=False,
+                                             key="include_name_diag_export")
+        if include_name_collecte:
+            st.caption(_("include_real_name_warning"))
         dl_col1, dl_col2 = st.columns(2)
         dl_col1.download_button(
             _("download_diagnostic_pdf"),
-            data=export_diagnostic_pdf_bytes(diagnostic, lang),
-            file_name=f"diagnostic_{diagnostic.get('nom', 'export')}.pdf",
+            data=export_diagnostic_pdf_bytes(diagnostic, lang, include_real_name=include_name_collecte),
+            file_name=f"diagnostic_{diagnostic.get('code', 'export')}.pdf",
             mime="application/pdf")
         dl_col2.download_button(
             _("download_diagnostic_word"),
-            data=export_diagnostic_word_bytes(diagnostic, lang),
-            file_name=f"diagnostic_{diagnostic.get('nom', 'export')}.docx",
+            data=export_diagnostic_word_bytes(diagnostic, lang, include_real_name=include_name_collecte),
+            file_name=f"diagnostic_{diagnostic.get('code', 'export')}.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
@@ -299,7 +322,7 @@ def page_collecte():
 def page_analyse():
     _ensure_diagnostic()
     diagnostic = st.session_state.current_diagnostic
-    st.title(f"{_('nav_analyse')} — {diagnostic.get('nom', '')}")
+    st.title(f"{_('nav_analyse')} — {display_label(diagnostic)}")
 
     if st.button(_("run_analysis"), type="primary"):
         st.session_state.pestel = compute_pestel(diagnostic, lang)
@@ -396,7 +419,7 @@ def page_analyse():
 def page_plan():
     _ensure_diagnostic()
     diagnostic = st.session_state.current_diagnostic
-    st.title(f"{_('nav_plan')} — {diagnostic.get('nom', '')}")
+    st.title(f"{_('nav_plan')} — {display_label(diagnostic)}")
 
     if "pestel" not in st.session_state:
         st.info(_("no_analysis_yet"))
@@ -441,16 +464,22 @@ def page_plan():
 
     st.markdown("---")
     if is_validated(diagnostic):
+        include_name_plan = st.checkbox(_("include_real_name_export"), value=False,
+                                         key="include_name_plan_export")
+        if include_name_plan:
+            st.caption(_("include_real_name_warning"))
         try:
             swot_data = st.session_state.get("swot")
-            pdf_bytes = export_pdf_bytes(diagnostic, plan, lang, swot=swot_data)
-            word_bytes = export_word_bytes(diagnostic, plan, lang, swot=swot_data)
+            pdf_bytes = export_pdf_bytes(diagnostic, plan, lang, swot=swot_data,
+                                          include_real_name=include_name_plan)
+            word_bytes = export_word_bytes(diagnostic, plan, lang, swot=swot_data,
+                                            include_real_name=include_name_plan)
             c1, c2 = st.columns(2)
             c1.download_button(_("download_pdf"), data=pdf_bytes,
-                                file_name=f"plan_strategique_{diagnostic.get('nom', 'diagnostic')}.pdf",
+                                file_name=f"plan_strategique_{diagnostic.get('code', 'diagnostic')}.pdf",
                                 mime="application/pdf")
             c2.download_button(_("download_word"), data=word_bytes,
-                                file_name=f"plan_strategique_{diagnostic.get('nom', 'diagnostic')}.docx",
+                                file_name=f"plan_strategique_{diagnostic.get('code', 'diagnostic')}.docx",
                                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
         except ExportNotAllowedError as e:
             st.error(str(e))
@@ -469,8 +498,9 @@ def page_historique():
         return
     for d in diagnostics:
         status = "✅ " + _("validated_on") if d["validated"] else "🕓"
+        name_display = f"{d['code']} — {d['nom']}" if st.session_state.get("reveal_names") else d["code"]
         with st.container(border=True):
-            st.markdown(f"**{d['nom']}** — {d['type']} — {d['conseiller']}  \n"
+            st.markdown(f"**{name_display}** — {d['type']} — {d['conseiller']}  \n"
                         f"{status} — {_('branch_completion')}: {d['updated_at']}")
 
 
