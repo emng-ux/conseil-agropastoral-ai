@@ -17,7 +17,7 @@ s'activent uniquement si une connexion Internet est disponible.
 
 - ✅ Formulaire guidé multi-branches (étoile du conseil), visualisation radar de complétude
 - ✅ Import de diagnostics existants (Excel/CSV) + modèle téléchargeable
-- ✅ 4 moteurs d'analyse stratégique 100% locaux (PESTEL, Porter, BCG, Ansoff)
+- ✅ 5 moteurs d'analyse stratégique 100% locaux (PESTEL, Porter, BCG, Ansoff, **SWOT/FFOM**)
 - ✅ Génération d'un plan stratégique + plan d'actions éditable
 - ✅ **Validation obligatoire du conseiller** avant tout téléchargement
 - ✅ Export PDF et Word
@@ -33,6 +33,11 @@ s'activent uniquement si une connexion Internet est disponible.
 - Enregistrement audio direct dans le navigateur + transcription → pré-remplissage
   automatique du formulaire, avec validation humaine systématique
 - Synchronisation optionnelle vers un espace cloud partagé entre conseillers
+
+## Démo en ligne
+
+Une démo est déployée sur Streamlit Community Cloud : https://conseil-agropastoral-ia.streamlit.app
+(usage de démonstration uniquement — évite d'y saisir de vraies données de producteurs).
 
 ## Installation
 
@@ -75,6 +80,7 @@ modules/
   analyse_porter.py         Moteur 5 forces de Porter
   analyse_bcg.py             Moteur Matrice BCG
   analyse_ansoff.py          Moteur Matrice d'Ansoff
+  analyse_swot.py             Moteur SWOT (FFOM), recoupé avec PESTEL et Porter
   plan_strategique.py       Génération du plan + validation conseiller
   export.py                  Export PDF / Word (bloqué si non validé)
 agent/orchestrator.py      Agent conversationnel (actif en ligne uniquement)

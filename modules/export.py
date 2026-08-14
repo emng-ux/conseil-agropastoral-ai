@@ -21,7 +21,7 @@ def _check_validated(diagnostic: dict):
             "Le plan doit être validé par le conseiller avant export.")
 
 
-def export_word_bytes(diagnostic: dict, plan: dict, lang: str = "fr") -> bytes:
+def export_word_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict = None) -> bytes:
     _check_validated(diagnostic)
     doc = Document()
 
@@ -36,6 +36,23 @@ def export_word_bytes(diagnostic: dict, plan: dict, lang: str = "fr") -> bytes:
         (f"Validé par {validation.get('validated_by', '')} le {validation.get('date', '')}"
          if lang == "fr" else
          f"Validated by {validation.get('validated_by', '')} on {validation.get('date', '')}"))
+
+    if swot:
+        doc.add_heading("Analyse SWOT (FFOM)" if lang == "fr" else "SWOT analysis", level=1)
+        swot_headers = [
+            ("forces", "Forces" if lang == "fr" else "Strengths"),
+            ("faiblesses", "Faiblesses" if lang == "fr" else "Weaknesses"),
+            ("opportunites", "Opportunités" if lang == "fr" else "Opportunities"),
+            ("menaces", "Menaces" if lang == "fr" else "Threats"),
+        ]
+        for key, title_key in swot_headers:
+            doc.add_heading(title_key, level=2)
+            items = swot.get(key, [])
+            if items:
+                for it in items:
+                    doc.add_paragraph(it, style="List Bullet")
+            else:
+                doc.add_paragraph("—")
 
     doc.add_heading("Orientations stratégiques" if lang == "fr" else "Strategic orientations", level=1)
     for o in plan.get("orientations", []):
@@ -79,7 +96,7 @@ class _PDF(FPDF):
         self.cell(0, 8, text, new_x="LMARGIN", new_y="NEXT")
 
 
-def export_pdf_bytes(diagnostic: dict, plan: dict, lang: str = "fr") -> bytes:
+def export_pdf_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict = None) -> bytes:
     _check_validated(diagnostic)
 
     title = "Plan strategique et plan d'actions" if lang == "fr" else "Strategic plan and action plan"
@@ -97,6 +114,28 @@ def export_pdf_bytes(diagnostic: dict, plan: dict, lang: str = "fr") -> bytes:
          if lang == "fr" else
          f"Validated by {validation.get('validated_by', '')} on {validation.get('date', '')}"))
     pdf.ln(4)
+
+    if swot:
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.title_line("Analyse SWOT (FFOM)" if lang == "fr" else "SWOT analysis")
+        pdf.set_font("Helvetica", size=10)
+        swot_headers = [
+            ("forces", "Forces" if lang == "fr" else "Strengths"),
+            ("faiblesses", "Faiblesses" if lang == "fr" else "Weaknesses"),
+            ("opportunites", "Opportunites" if lang == "fr" else "Opportunities"),
+            ("menaces", "Menaces" if lang == "fr" else "Threats"),
+        ]
+        for key, title in swot_headers:
+            pdf.set_font("Helvetica", "B", 11)
+            pdf.title_line(title)
+            pdf.set_font("Helvetica", size=10)
+            items = swot.get(key, [])
+            if items:
+                for it in items:
+                    pdf.line(f"- {it}", height=6)
+            else:
+                pdf.line("-", height=6)
+        pdf.ln(4)
 
     pdf.set_font("Helvetica", "B", 12)
     pdf.title_line("Orientations strategiques" if lang == "fr" else "Strategic orientations")

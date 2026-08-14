@@ -19,6 +19,7 @@ from modules.analyse_pestel import compute_pestel, PESTEL_LABELS
 from modules.analyse_porter import compute_porter
 from modules.analyse_bcg import compute_bcg
 from modules.analyse_ansoff import compute_ansoff
+from modules.analyse_swot import compute_swot, label as swot_label
 from modules.plan_strategique import generate_draft_plan, validate_plan, is_validated
 from modules.export import export_pdf_bytes, export_word_bytes, ExportNotAllowedError
 
@@ -213,12 +214,16 @@ def page_analyse():
         st.session_state.porter = compute_porter(diagnostic, lang)
         st.session_state.bcg = compute_bcg(diagnostic, lang)
         st.session_state.ansoff = compute_ansoff(diagnostic, lang)
+        # Le SWOT recoupe PESTEL et Porter déjà calculés, pour rester cohérent entre les 5 outils.
+        st.session_state.swot = compute_swot(diagnostic, lang, pestel=st.session_state.pestel,
+                                              porter=st.session_state.porter)
 
     if "pestel" not in st.session_state:
         st.info(_("analysis_incomplete"))
         return
 
-    tab1, tab2, tab3, tab4 = st.tabs([_("tab_pestel"), _("tab_porter"), _("tab_bcg"), _("tab_ansoff")])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(
+        [_("tab_pestel"), _("tab_porter"), _("tab_bcg"), _("tab_ansoff"), _("tab_swot")])
 
     with tab1:
         cols = st.columns(3)
@@ -259,6 +264,39 @@ def page_analyse():
             marker = "⭐ " if opt["recommande"] else ""
             st.markdown(f"{marker}**{opt['nom']}** — {opt['description']}")
 
+    with tab5:
+        swot = st.session_state.swot
+        st.caption(f"🔵 {_('swot_interne')} : {_('swot_forces')} / {_('swot_faiblesses')}   "
+                   f"🟠 {_('swot_externe')} : {_('swot_opportunites')} / {_('swot_menaces')}")
+        quad_cols = st.columns(2)
+        quadrants = [
+            ("forces", "🟢", quad_cols[0]),
+            ("faiblesses", "🔴", quad_cols[1]),
+        ]
+        for key, emoji, col in quadrants:
+            with col:
+                st.markdown(f"**{emoji} {swot_label(key, lang)}**")
+                items = swot.get(key, [])
+                if items:
+                    for it in items:
+                        st.markdown(f"- {it}")
+                else:
+                    st.caption("—")
+        quad_cols2 = st.columns(2)
+        quadrants2 = [
+            ("opportunites", "🟡", quad_cols2[0]),
+            ("menaces", "🟠", quad_cols2[1]),
+        ]
+        for key, emoji, col in quadrants2:
+            with col:
+                st.markdown(f"**{emoji} {swot_label(key, lang)}**")
+                items = swot.get(key, [])
+                if items:
+                    for it in items:
+                        st.markdown(f"- {it}")
+                else:
+                    st.caption("—")
+
 
 # ---------------------------------------------------------------------------
 # Page : Plan stratégique (avec validation obligatoire avant export)
@@ -275,7 +313,8 @@ def page_plan():
     if "plan" not in st.session_state or st.button("🔄 " + _("plan_title")):
         st.session_state.plan = generate_draft_plan(
             diagnostic, st.session_state.pestel, st.session_state.porter,
-            st.session_state.bcg, st.session_state.ansoff, lang)
+            st.session_state.bcg, st.session_state.ansoff,
+            swot=st.session_state.get("swot"), lang=lang)
 
     plan = st.session_state.plan
     st.caption(_("plan_intro"))
@@ -311,8 +350,9 @@ def page_plan():
     st.markdown("---")
     if is_validated(diagnostic):
         try:
-            pdf_bytes = export_pdf_bytes(diagnostic, plan, lang)
-            word_bytes = export_word_bytes(diagnostic, plan, lang)
+            swot_data = st.session_state.get("swot")
+            pdf_bytes = export_pdf_bytes(diagnostic, plan, lang, swot=swot_data)
+            word_bytes = export_word_bytes(diagnostic, plan, lang, swot=swot_data)
             c1, c2 = st.columns(2)
             c1.download_button(_("download_pdf"), data=pdf_bytes,
                                 file_name=f"plan_strategique_{diagnostic.get('nom', 'diagnostic')}.pdf",

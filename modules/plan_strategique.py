@@ -5,9 +5,27 @@ from datetime import datetime
 
 
 def generate_draft_plan(diagnostic: dict, pestel: dict, porter: dict, bcg: list,
-                         ansoff: dict, lang: str = "fr") -> dict:
+                         ansoff: dict, swot: dict = None, lang: str = "fr") -> dict:
     """Génère une proposition initiale de plan, éditable ensuite par le conseiller."""
     orientations = []
+    swot = swot or {}
+
+    # Orientations issues du SWOT : capitaliser sur une force pour saisir une opportunité,
+    # ou traiter en priorité une faiblesse exposée à une menace.
+    forces = swot.get("forces", [])
+    faiblesses = swot.get("faiblesses", [])
+    opportunites = swot.get("opportunites", [])
+    menaces = swot.get("menaces", [])
+    if forces and opportunites:
+        orientations.append(
+            (f"S'appuyer sur les forces identifiées ({forces[0]}) pour saisir l'opportunité : {opportunites[0]}"
+             if lang == "fr" else
+             f"Leverage identified strengths ({forces[0]}) to seize the opportunity: {opportunites[0]}"))
+    if faiblesses and menaces:
+        orientations.append(
+            (f"Traiter en priorité la faiblesse « {faiblesses[0]} », exposée à la menace : {menaces[0]}"
+             if lang == "fr" else
+             f"Prioritise addressing the weakness '{faiblesses[0]}', exposed to the threat: {menaces[0]}"))
 
     # Orientation issue d'Ansoff
     reco_key = ansoff.get("recommandation")
