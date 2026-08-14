@@ -23,7 +23,7 @@ import os
 
 from modules.collecte import load_schema
 
-_ANTHROPIC_MODEL = "claude-sonnet-4-6"
+_ANTHROPIC_MODEL = "claude-sonnet-5"
 _MAX_TURNS_TOOL_LOOP = 4  # garde-fou : jamais plus de 4 aller-retours d'outils dans un même tour utilisateur
 
 
