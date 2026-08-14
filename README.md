@@ -16,7 +16,8 @@ s'activent uniquement si une connexion Internet est disponible.
 ## Fonctionnalités (V1)
 
 - ✅ Formulaire guidé multi-branches (étoile du conseil), visualisation radar de complétude
-- ✅ Import de diagnostics existants (Excel/CSV) + modèle téléchargeable
+- ✅ Import de diagnostics existants (Excel/CSV, modèle strict) + modèle téléchargeable
+- ✅ Import de diagnostics **Word à structure libre** (une ou plusieurs parties), extraction assistée par IA vers l'étoile du conseil et le SWOT, toujours relu avant sauvegarde
 - ✅ 5 moteurs d'analyse stratégique 100% locaux (PESTEL, Porter, BCG, Ansoff, **SWOT/FFOM**)
 - ✅ Génération d'un plan stratégique + plan d'actions éditable
 - ✅ **Validation obligatoire du conseiller** avant tout téléchargement
@@ -74,6 +75,7 @@ i18n/                      Traductions FR/EN
 modules/
   collecte.py              Rendu dynamique du formulaire
   import_data.py           Import Excel/CSV + modèle
+  import_word.py            Import Word à structure libre (extraction IA)
   analyse_pestel.py         Moteur PESTEL
   analyse_porter.py         Moteur 5 forces de Porter
   analyse_bcg.py             Moteur Matrice BCG

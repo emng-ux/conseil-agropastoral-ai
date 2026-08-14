@@ -28,7 +28,14 @@ def compute_swot(diagnostic: dict, lang: str = "fr", pestel: dict | None = None,
     milieu = etoile.get("milieu_local", {})
     politiques = etoile.get("politiques_publiques", {})
 
-    forces, faiblesses, opportunites, menaces = [], [], [], []
+    # Si un diagnostic Word importé contenait déjà une analyse SWOT explicite
+    # (sections Forces/Faiblesses/Opportunités/Menaces), on part de celle-ci en
+    # priorité, puis on complète avec les déductions automatiques ci-dessous.
+    imported = diagnostic.get("swot_import", {})
+    forces = list(imported.get("forces", []))
+    faiblesses = list(imported.get("faiblesses", []))
+    opportunites = list(imported.get("opportunites", []))
+    menaces = list(imported.get("menaces", []))
 
     # --- Interne : Moyens de production ---
     if moyens.get("acces_eau") in ("Irrigation disponible", "Irrigation available"):

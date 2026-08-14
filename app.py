@@ -161,6 +161,39 @@ def page_dashboard():
             except Exception:
                 st.error(_("import_error"))
 
+        st.markdown("---")
+        st.subheader(_("import_word_title"))
+        if st.session_state.online:
+            from modules.import_word import (word_import_available, extract_text_from_docx,
+                                               extract_diagnostic_from_text,
+                                               build_diagnostic_from_extraction)
+            if word_import_available():
+                st.caption(_("import_word_help"))
+                nom_word = st.text_input(_("diagnostic_name"), key="word_nom")
+                type_word = st.selectbox(_("diagnostic_type"), [_("type_efa"), _("type_op")], key="word_type")
+                conseiller_word = st.text_input(_("conseiller_name"), key="word_conseiller")
+                word_files = st.file_uploader(_("import_word_upload"), type=["docx"],
+                                               accept_multiple_files=True, key="word_files")
+                if word_files and nom_word and st.button(_("import_word_button")):
+                    with st.spinner(_("import_word_progress")):
+                        try:
+                            full_text = "\n\n".join(extract_text_from_docx(f) for f in word_files)
+                            extraction = extract_diagnostic_from_text(full_text, lang)
+                            diagnostic = build_diagnostic_from_extraction(
+                                extraction, nom_word, type_word, conseiller_word)
+                            diagnostic_id = new_diagnostic_id()
+                            st.session_state.current_diagnostic_id = diagnostic_id
+                            st.session_state.current_diagnostic = diagnostic
+                            st.session_state.page = "collecte"
+                            st.success(_("import_word_review_hint"))
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"{_('import_error')} ({e})")
+            else:
+                st.info(_("import_word_needs_key"))
+        else:
+            st.info(_("chat_unavailable_offline"))
+
 
 # ---------------------------------------------------------------------------
 # Page : Collecte (étoile du conseil)
