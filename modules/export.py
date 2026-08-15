@@ -92,22 +92,43 @@ def export_word_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict
     return buffer.getvalue()
 
 
+_UNICODE_REPLACEMENTS = {
+    "\u2018": "'", "\u2019": "'",  # apostrophes typographiques ' '
+    "\u201c": '"', "\u201d": '"',  # guillemets typographiques " "
+    "\u2013": "-", "\u2014": "-",  # tirets demi/long – —
+    "\u2026": "...",  # points de suspension …
+    "\u00a0": " ",  # espace insécable
+}
+
+
+def _sanitize_for_pdf(text: str) -> str:
+    """La police de base (Helvetica) du PDF ne supporte que le Latin-1 : un
+    caractère hors de ce jeu (guillemet stylisé, tiret long, emoji, etc.) fait
+    planter la génération. On translittère d'abord les cas les plus courants
+    (copier-coller depuis Word notamment), puis on remplace tout ce qui
+    resterait incompatible plutôt que de faire échouer tout l'export."""
+    text = str(text)
+    for src, dst in _UNICODE_REPLACEMENTS.items():
+        text = text.replace(src, dst)
+    return text.encode("latin-1", errors="replace").decode("latin-1")
+
+
 class _PDF(FPDF):
     def header(self):
         self.set_font("Helvetica", "B", 14)
         self.set_x(self.l_margin)
-        self.cell(0, 10, self.title_text, new_x="LMARGIN", new_y="NEXT", align="C")
+        self.cell(0, 10, _sanitize_for_pdf(self.title_text), new_x="LMARGIN", new_y="NEXT", align="C")
         self.ln(2)
 
     def line(self, text: str, height: float = 8):
         """multi_cell ne remet pas le curseur en marge gauche par défaut : on le force
         avant chaque ligne pour éviter une largeur disponible nulle/négative."""
         self.set_x(self.l_margin)
-        self.multi_cell(0, height, text, new_x="LMARGIN", new_y="NEXT")
+        self.multi_cell(0, height, _sanitize_for_pdf(text), new_x="LMARGIN", new_y="NEXT")
 
     def title_line(self, text: str):
         self.set_x(self.l_margin)
-        self.cell(0, 8, text, new_x="LMARGIN", new_y="NEXT")
+        self.cell(0, 8, _sanitize_for_pdf(text), new_x="LMARGIN", new_y="NEXT")
 
 
 def export_pdf_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict = None,
