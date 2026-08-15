@@ -256,6 +256,10 @@ def page_collecte():
     ensure_code(st.session_state.current_diagnostic_id, diagnostic)
     st.title(f"{_('nav_collecte')} — {display_label(diagnostic)}")
 
+    from modules.identification import render_identification_form
+    with st.expander(_("identification_title"), expanded=not diagnostic.get("identification")):
+        render_identification_form(diagnostic, lang)
+
     col1, col2 = st.columns([1, 2])
     with col1:
         st.plotly_chart(_radar_chart(diagnostic), use_container_width=True)

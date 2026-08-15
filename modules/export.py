@@ -210,6 +210,38 @@ def export_diagnostic_word_bytes(diagnostic: dict, lang: str = "fr",
     doc.add_paragraph(f"{'Type' if lang == 'fr' else 'Type'}: {diagnostic.get('type', '')}")
     doc.add_paragraph(f"{'Conseiller' if lang == 'fr' else 'Advisor'}: {diagnostic.get('conseiller', '')}")
 
+    if include_real_name:
+        ident = diagnostic.get("identification", {})
+        if ident:
+            doc.add_heading("Identification & localisation" if lang == "fr" else "Identification & location",
+                             level=1)
+            loc_fields = [
+                ("Village" if lang == "fr" else "Village", ident.get("village", "")),
+                ("Arrondissement" if lang == "fr" else "Sub-district", ident.get("arrondissement", "")),
+                ("Département" if lang == "fr" else "Department", ident.get("departement", "")),
+                ("Région" if lang == "fr" else "Region", ident.get("region", "")),
+                ("Pays" if lang == "fr" else "Country", ident.get("pays", "")),
+                ("Année" if lang == "fr" else "Year", ident.get("annee", "")),
+                ("Code administratif" if lang == "fr" else "Administrative code",
+                 ident.get("code_administratif", "")),
+            ]
+            for label, value in loc_fields:
+                if value:
+                    doc.add_paragraph(f"{label}: {value}")
+            gps = ident.get("gps", {})
+            if gps.get("latitude") or gps.get("longitude"):
+                doc.add_paragraph(f"GPS: {gps.get('latitude', '')}, {gps.get('longitude', '')}")
+
+            from modules.identification import contact_is_visible
+            contact = ident.get("contact", {})
+            if any(contact.get(k) for k in ("adresse", "telephone", "email")):
+                if contact_is_visible(diagnostic):
+                    doc.add_paragraph(
+                        f"{'Contact' if lang == 'fr' else 'Contact'}: {contact.get('adresse', '')} "
+                        f"— {contact.get('telephone', '')} — {contact.get('email', '')}")
+                else:
+                    doc.add_paragraph(("Contact masqué" if lang == "fr" else "Contact masked"))
+
     schema = load_schema()["branches"]
     etoile = diagnostic.get("etoile", {})
 
@@ -256,6 +288,40 @@ def export_diagnostic_pdf_bytes(diagnostic: dict, lang: str = "fr",
     pdf.line(_identity_label(diagnostic, lang, include_real_name))
     pdf.line(f"Type: {diagnostic.get('type', '')}")
     pdf.line(f"{'Conseiller' if lang == 'fr' else 'Advisor'}: {diagnostic.get('conseiller', '')}")
+
+    if include_real_name:
+        ident = diagnostic.get("identification", {})
+        if ident:
+            pdf.ln(2)
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.title_line("Identification & localisation" if lang == "fr" else "Identification & location")
+            pdf.set_font("Helvetica", size=10)
+            loc_fields = [
+                ("Village", ident.get("village", "")),
+                ("Arrondissement" if lang == "fr" else "Sub-district", ident.get("arrondissement", "")),
+                ("Departement" if lang == "fr" else "Department", ident.get("departement", "")),
+                ("Region" if lang == "fr" else "Region", ident.get("region", "")),
+                ("Pays" if lang == "fr" else "Country", ident.get("pays", "")),
+                ("Annee" if lang == "fr" else "Year", ident.get("annee", "")),
+                ("Code administratif" if lang == "fr" else "Administrative code",
+                 ident.get("code_administratif", "")),
+            ]
+            for label, value in loc_fields:
+                if value:
+                    pdf.line(f"- {label}: {value}", height=6)
+            gps = ident.get("gps", {})
+            if gps.get("latitude") or gps.get("longitude"):
+                pdf.line(f"- GPS: {gps.get('latitude', '')}, {gps.get('longitude', '')}", height=6)
+
+            from modules.identification import contact_is_visible
+            contact = ident.get("contact", {})
+            if any(contact.get(k) for k in ("adresse", "telephone", "email")):
+                if contact_is_visible(diagnostic):
+                    pdf.line(f"- Contact: {contact.get('adresse', '')} - "
+                             f"{contact.get('telephone', '')} - {contact.get('email', '')}", height=6)
+                else:
+                    pdf.line("- " + ("Contact masque" if lang == "fr" else "Contact masked"), height=6)
+
     pdf.ln(4)
 
     schema = load_schema()["branches"]
