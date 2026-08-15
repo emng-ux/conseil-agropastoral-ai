@@ -75,6 +75,7 @@
   "online_status_online": "🟢 Online",
   "online_status_offline": "🔴 Offline (local mode)",
   "reveal_names_toggle": "👁️ Show names",
+  "logout_button": "🚪 Log out",
   "reveal_names_warning": "Real EFA/PO names are now visible in the interface.",
   "include_real_name_export": "Include the real name in the document (internal use only)",
   "include_real_name_warning": "⚠️ This document will contain the real EFA/PO name — share internally only.",

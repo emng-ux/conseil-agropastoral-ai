@@ -22,7 +22,9 @@ s'activent uniquement si une connexion Internet est disponible.
 - ✅ Génération d'un plan stratégique + plan d'actions éditable
 - ✅ **Validation obligatoire du conseiller** avant tout téléchargement
 - ✅ Export PDF et Word
-- ✅ **Protection des données** : chaque diagnostic reçoit un code d'identifiant (ex. `DIAG-2026-0007`) ; seul ce code est affiché par défaut dans l'interface et les documents exportés — le nom réel de l'EFA/OP reste masqué sauf activation explicite
+- ✅ **Persistance en ligne** : bascule automatique vers Supabase (base de données partagée) quand configuré, sinon fichiers locaux
+- ✅ **Authentification** : écran de connexion nom d'utilisateur/mot de passe, activable via les secrets
+- ✅ **Protection des données** : code d'identifiant unique par diagnostic ; masquage du nom réel de l'EFA/OP par défaut dans l'interface et les exports
 - ✅ Interface bilingue FR/EN
 - ✅ Stockage 100% local (JSON), aucune dépendance réseau pour l'usage de base
 - ✅ Agent conversationnel **multi-tours avec tool-calling réel** — actif si `ANTHROPIC_API_KEY` est configurée et une connexion est détectée. Il enregistre les informations mentionnées, relance sur les branches manquantes, et signale lui-même quand le diagnostic est prêt pour l'analyse
@@ -38,6 +40,57 @@ s'activent uniquement si une connexion Internet est disponible.
 
 Une démo est déployée sur Streamlit Community Cloud : https://conseil-agropastoral-ia.streamlit.app
 (usage de démonstration uniquement — évite d'y saisir de vraies données de producteurs).
+
+## Persistance en ligne (Supabase) et authentification
+
+Par défaut, l'app stocke les diagnostics dans des fichiers JSON locaux (dossier
+`storage/`) — parfait pour un usage local, mais **le système de fichiers d'un
+déploiement Streamlit Cloud est éphémère** : sans base de données externe, les
+diagnostics créés sur la version en ligne peuvent être perdus au redémarrage.
+
+### 1. Créer la base Supabase (gratuit pour démarrer)
+
+1. Crée un compte sur [supabase.com](https://supabase.com) et un nouveau projet.
+2. Dans l'éditeur SQL du projet, exécute :
+   ```sql
+   create table diagnostics (
+     id text primary key,
+     code text,
+     data jsonb not null,
+     updated_at timestamptz not null default now()
+   );
+   ```
+3. Dans Project Settings → API, récupère l'URL du projet et la clé **service_role**
+   (jamais la clé `anon` publique — la `service_role` doit rester strictement secrète).
+
+### 2. Configurer les secrets (Streamlit Cloud ou local)
+
+```toml
+SUPABASE_URL = "https://xxxx.supabase.co"
+SUPABASE_KEY = "eyJ..."   # la clé service_role, jamais exposée côté navigateur
+```
+
+Dès que ces deux valeurs sont présentes, l'app bascule automatiquement sur
+Supabase — visible dans la barre latérale ("💾 Supabase (base partagée en ligne)").
+Sans elles, elle continue à fonctionner en local comme avant.
+
+### 3. Activer l'authentification (nom d'utilisateur / mot de passe)
+
+Génère un hash pour chaque mot de passe choisi :
+```bash
+python -c "import hashlib; print(hashlib.sha256('mot_de_passe_ici'.encode()).hexdigest())"
+```
+
+Puis ajoute dans les secrets :
+```toml
+[auth_users]
+emmanuel = "le_hash_généré_ci-dessus"
+conseiller2 = "un_autre_hash"
+```
+
+Dès qu'au moins un compte est configuré, un écran de connexion apparaît avant
+tout accès à l'app. Sans cette section, l'accès reste ouvert (comportement
+adapté à un usage local individuel).
 
 ## Installation
 

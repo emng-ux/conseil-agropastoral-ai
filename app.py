@@ -31,13 +31,27 @@ st.set_page_config(page_title="Conseil Agropastoral IA", page_icon="🌿", layou
 # que agent/orchestrator.py et audio/transcription_online.py (qui lisent
 # os.environ) fonctionnent de façon fiable, en local comme en ligne.
 import os
-for _secret_key in ("ANTHROPIC_API_KEY", "TRANSCRIPTION_API_KEY"):
+for _secret_key in ("ANTHROPIC_API_KEY", "TRANSCRIPTION_API_KEY", "SUPABASE_URL", "SUPABASE_KEY"):
     if _secret_key not in os.environ:
         try:
             if _secret_key in st.secrets:
                 os.environ[_secret_key] = st.secrets[_secret_key]
         except Exception:
             pass  # pas de fichier secrets.toml en local : comportement normal, on ignore
+
+# ---------------------------------------------------------------------------
+# Authentification (si des comptes sont configurés dans les secrets)
+# ---------------------------------------------------------------------------
+from utils.auth import require_login, logout
+
+_login_lang = "fr"  # la langue n'est pas encore choisie à ce stade : écran de connexion toujours en français+anglais
+if not require_login(
+        title="🔒 Connexion — Login",
+        username_label="Nom d'utilisateur / Username",
+        password_label="Mot de passe / Password",
+        submit_label="Se connecter / Log in",
+        error_label="Identifiants incorrects / Incorrect credentials"):
+    st.stop()
 
 # ---------------------------------------------------------------------------
 # État de session
@@ -86,6 +100,13 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(_("online_status_online") if st.session_state.online else _("online_status_offline"))
+    from utils.storage import storage_backend_name
+    st.caption(f"💾 {storage_backend_name()}")
+    if st.session_state.get("current_user"):
+        st.caption(f"👤 {st.session_state['current_user']}")
+        if st.button(_("logout_button"), use_container_width=True):
+            logout()
+            st.rerun()
 
     st.markdown("---")
     st.session_state.reveal_names = st.toggle(
@@ -232,7 +253,7 @@ def _radar_chart(diagnostic):
 def page_collecte():
     _ensure_diagnostic()
     diagnostic = st.session_state.current_diagnostic
-    ensure_code(diagnostic)
+    ensure_code(st.session_state.current_diagnostic_id, diagnostic)
     st.title(f"{_('nav_collecte')} — {display_label(diagnostic)}")
 
     col1, col2 = st.columns([1, 2])
