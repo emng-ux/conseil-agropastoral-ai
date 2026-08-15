@@ -102,6 +102,18 @@ with st.sidebar:
     st.markdown(_("online_status_online") if st.session_state.online else _("online_status_offline"))
     from utils.storage import storage_backend_name
     st.caption(f"💾 {storage_backend_name()}")
+
+    # --- Marqueur de diagnostic temporaire : à retirer une fois le problème
+    # d'affichage des traductions résolu. Permet de vérifier à distance ce que
+    # le serveur charge réellement (fichier i18n, contenu, nombre de clés). ---
+    from utils.i18n import load_translations
+    _debug_trans = load_translations(lang)
+    st.caption(f"🔧 debug i18n: field_village='{_debug_trans.get('field_village', 'ABSENT')}' "
+               f"| {len(_debug_trans)} clés chargées")
+    import os as _os_debug
+    _fr_path_debug = _os_debug.path.join(_os_debug.path.dirname(_os_debug.path.abspath(__file__)),
+                                          "i18n", "fr.json")
+    st.caption(f"🔧 debug fichier: {_fr_path_debug} (existe: {_os_debug.path.exists(_fr_path_debug)})")
     if st.session_state.get("current_user"):
         st.caption(f"👤 {st.session_state['current_user']}")
         if st.button(_("logout_button"), use_container_width=True):
