@@ -1,0 +1,5 @@
+# Active le service de fichiers statiques (dossier static/) pour permettre
+# l'installation de l'app comme PWA (icône sur l'écran d'accueil Android),
+# via le manifest et le service worker exposés sous /app/static/.
+[server]
+enableStaticServing = true

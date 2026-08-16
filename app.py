@@ -25,6 +25,20 @@ from modules.export import export_pdf_bytes, export_word_bytes, ExportNotAllowed
 
 st.set_page_config(page_title="Conseil Agropastoral IA", page_icon="🌿", layout="wide")
 
+# --- PWA : rend l'app installable sur l'écran d'accueil (Android notamment).
+# Nécessite [server] enableStaticServing = true dans .streamlit/config.toml,
+# et les fichiers static/manifest.json, static/icon-*.png, static/sw.js. ---
+st.markdown("""
+    <link rel="manifest" href="./app/static/manifest.json">
+    <meta name="theme-color" content="#2e7d32">
+    <link rel="apple-touch-icon" href="./app/static/icon-192.png">
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./app/static/sw.js').catch(function() {});
+    }
+    </script>
+""", unsafe_allow_html=True)
+
 # Sécurise la lecture des secrets (clés API) : sur certaines configurations de
 # Streamlit Cloud, les secrets ne sont accessibles que via st.secrets et pas
 # automatiquement copiés dans os.environ. On les recopie explicitement ici pour

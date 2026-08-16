@@ -32,6 +32,8 @@ connexion Internet est disponible.
 - ✅ Agent conversationnel **multi-tours avec tool-calling réel** — actif si `ANTHROPIC_API_KEY` est configurée et une connexion est détectée. Il enregistre les informations mentionnées, relance sur les branches manquantes, et signale lui-même quand le diagnostic est prêt pour l'analyse
 - ✅ **Assistant de configuration de mot de passe intégré** : génère le secret à coller dans Streamlit Cloud, sans ligne de commande
 - ✅ Section Entreprise incluse dans les exports PDF/Word du diagnostic
+- ✅ **Installable comme PWA sur Android** (icône écran d'accueil, plein écran)
+- ✅ **Script d'installation Windows en 1 clic** (`install_windows.bat`)
 
 ## Roadmap (V3)
 
@@ -41,6 +43,23 @@ connexion Internet est disponible.
 
 Une démo est déployée sur Streamlit Community Cloud : https://conseil-agropastoral-ia.streamlit.app
 (usage de démonstration uniquement — évite d'y saisir de vraies données de producteurs).
+
+## Installer comme application (Android)
+
+L'app est une PWA (Progressive Web App) : depuis un téléphone Android, ouvre
+l'URL ci-dessus dans Chrome, puis dans le menu (⋮) choisis **"Installer
+l'application"** (ou "Ajouter à l'écran d'accueil"). Une icône apparaît alors
+sur l'écran d'accueil, avec un affichage plein écran sans barre de navigateur.
+Nécessite toujours une connexion Internet (c'est la même app web).
+
+## Installation locale sur Windows (1 clic)
+
+Pour un conseiller qui n'a jamais installé le projet sur son ordinateur :
+
+1. Va sur https://raw.githubusercontent.com/emng-ux/conseil-agropastoral-ai/main/install_windows.bat
+2. Clic droit sur la page → **Enregistrer sous** → sauvegarde le fichier `install_windows.bat` (ex. sur le Bureau)
+3. Double-clique sur ce fichier : il installe automatiquement Git/Python si besoin (ou indique comment faire), clone le projet, installe les dépendances et lance l'agent
+4. Pour les lancements suivants, utilise `lancer_agent.bat` (créé dans le même dossier que le projet) — bien plus rapide, pas de réinstallation
 
 ## Persistance en ligne (Supabase) et authentification
 
