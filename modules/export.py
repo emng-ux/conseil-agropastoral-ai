@@ -218,12 +218,15 @@ def export_diagnostic_word_bytes(diagnostic: dict, lang: str = "fr",
             loc_fields = [
                 ("Village" if lang == "fr" else "Village", ident.get("village", "")),
                 ("Arrondissement" if lang == "fr" else "Sub-district", ident.get("arrondissement", "")),
+                ("Code arrondissement" if lang == "fr" else "Sub-district code",
+                 ident.get("code_arrondissement", "")),
                 ("Département" if lang == "fr" else "Department", ident.get("departement", "")),
+                ("Code département" if lang == "fr" else "Department code",
+                 ident.get("code_departement", "")),
                 ("Région" if lang == "fr" else "Region", ident.get("region", "")),
+                ("Code région" if lang == "fr" else "Region code", ident.get("code_region", "")),
                 ("Pays" if lang == "fr" else "Country", ident.get("pays", "")),
                 ("Année" if lang == "fr" else "Year", ident.get("annee", "")),
-                ("Code administratif" if lang == "fr" else "Administrative code",
-                 ident.get("code_administratif", "")),
             ]
             for label, value in loc_fields:
                 if value:
@@ -299,12 +302,15 @@ def export_diagnostic_pdf_bytes(diagnostic: dict, lang: str = "fr",
             loc_fields = [
                 ("Village", ident.get("village", "")),
                 ("Arrondissement" if lang == "fr" else "Sub-district", ident.get("arrondissement", "")),
+                ("Code arrondissement" if lang == "fr" else "Sub-district code",
+                 ident.get("code_arrondissement", "")),
                 ("Departement" if lang == "fr" else "Department", ident.get("departement", "")),
+                ("Code departement" if lang == "fr" else "Department code",
+                 ident.get("code_departement", "")),
                 ("Region" if lang == "fr" else "Region", ident.get("region", "")),
+                ("Code region" if lang == "fr" else "Region code", ident.get("code_region", "")),
                 ("Pays" if lang == "fr" else "Country", ident.get("pays", "")),
                 ("Annee" if lang == "fr" else "Year", ident.get("annee", "")),
-                ("Code administratif" if lang == "fr" else "Administrative code",
-                 ident.get("code_administratif", "")),
             ]
             for label, value in loc_fields:
                 if value:

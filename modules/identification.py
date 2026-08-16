@@ -25,16 +25,18 @@ def render_identification_form(diagnostic: dict, lang: str) -> dict:
         ident["village"] = st.text_input(t("field_village", lang), value=ident.get("village", ""))
         ident["arrondissement"] = st.text_input(t("field_arrondissement", lang),
                                                  value=ident.get("arrondissement", ""))
+        ident["code_arrondissement"] = st.text_input(
+            t("field_code_arrondissement", lang), value=ident.get("code_arrondissement", ""))
         ident["departement"] = st.text_input(t("field_departement", lang),
                                               value=ident.get("departement", ""))
+        ident["code_departement"] = st.text_input(
+            t("field_code_departement", lang), value=ident.get("code_departement", ""))
     with col2:
         ident["region"] = st.text_input(t("field_region", lang), value=ident.get("region", ""))
+        ident["code_region"] = st.text_input(
+            t("field_code_region", lang), value=ident.get("code_region", ""))
         ident["pays"] = st.text_input(t("field_pays", lang), value=ident.get("pays", ""))
         ident["annee"] = st.text_input(t("field_annee", lang), value=ident.get("annee", ""))
-
-    ident["code_administratif"] = st.text_input(
-        t("field_code_administratif", lang), value=ident.get("code_administratif", ""),
-        help=t("field_code_administratif_help", lang))
 
     st.markdown(f"**{t('field_gps', lang)}**")
     gps = ident.setdefault("gps", {})
