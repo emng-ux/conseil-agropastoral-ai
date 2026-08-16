@@ -10,9 +10,3 @@ anthropic>=0.34
 
 # Dépendance pour la persistance des données en ligne (Supabase) :
 requests>=2.31
-
-# Dépendance optionnelle pour la transcription cloud (à activer selon le fournisseur choisi) :
-openai>=1.40
-
-# Dépendance optionnelle pour la transcription audio hors-ligne (edge computing) :
-# openai-whisper

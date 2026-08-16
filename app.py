@@ -1,8 +1,8 @@
 """Agent IA de conseil agropastoral — application principale Streamlit.
 
 Fonctionnement hybride : le socle (formulaire, stockage, analyse, export) tourne
-100% en local sans connexion Internet. Le chat IA et la transcription audio en
-ligne s'activent uniquement si une connexion est détectée.
+100% en local sans connexion Internet. Le chat IA conversationnel s'active
+uniquement si une connexion est détectée.
 """
 import streamlit as st
 import plotly.graph_objects as go
@@ -28,10 +28,10 @@ st.set_page_config(page_title="Conseil Agropastoral IA", page_icon="🌿", layou
 # Sécurise la lecture des secrets (clés API) : sur certaines configurations de
 # Streamlit Cloud, les secrets ne sont accessibles que via st.secrets et pas
 # automatiquement copiés dans os.environ. On les recopie explicitement ici pour
-# que agent/orchestrator.py et audio/transcription_online.py (qui lisent
-# os.environ) fonctionnent de façon fiable, en local comme en ligne.
+# que agent/orchestrator.py (qui lit os.environ) fonctionne de façon fiable,
+# en local comme en ligne.
 import os
-for _secret_key in ("ANTHROPIC_API_KEY", "TRANSCRIPTION_API_KEY", "SUPABASE_URL", "SUPABASE_KEY"):
+for _secret_key in ("ANTHROPIC_API_KEY", "SUPABASE_URL", "SUPABASE_KEY"):
     if _secret_key not in os.environ:
         try:
             if _secret_key in st.secrets:
@@ -341,43 +341,6 @@ def page_collecte():
                         st.rerun()
                     except Exception as e:
                         st.error(str(e))
-
-                # --- Capture audio : transcrit puis alimente le même pipeline agentique
-                # que le chat texte ci-dessus (mêmes garanties : rien n'est jamais
-                # sauvegardé sans que le conseiller relise et valide le formulaire). ---
-                from audio.transcription_online import online_transcription_available, transcribe as transcribe_audio
-                st.markdown(f"**{_('audio_upload')}**")
-                if online_transcription_available():
-                    audio_value = st.audio_input(_("audio_record_label"), key=f"audio_input_{st.session_state.current_diagnostic_id}")
-                    if audio_value is not None:
-                        audio_hash_key = f"audio_processed_{st.session_state.current_diagnostic_id}"
-                        import hashlib
-                        audio_bytes = audio_value.getvalue()
-                        current_hash = hashlib.md5(audio_bytes).hexdigest()
-                        if st.session_state.get(audio_hash_key) != current_hash:
-                            with st.spinner(_("audio_transcribing")):
-                                try:
-                                    import io as _io
-
-                                    class _NamedAudio(_io.BytesIO):
-                                        name = "recording.wav"
-
-                                    audio_file_obj = _NamedAudio(audio_bytes)
-                                    transcribed_text = transcribe_audio(audio_file_obj, lang)
-                                    st.session_state[audio_hash_key] = current_hash
-                                    if transcribed_text.strip():
-                                        result = run_turn(st.session_state[chat_key], transcribed_text,
-                                                           diagnostic, lang)
-                                        st.session_state[chat_key] = result["conversation_history"]
-                                        st.session_state.current_diagnostic = diagnostic
-                                        save_diagnostic(st.session_state.current_diagnostic_id, diagnostic)
-                                        if result["ready_for_analysis"]:
-                                            st.session_state.chat_ready_for_analysis = True
-                                        st.rerun()
-                                except Exception as e:
-                                    st.error(str(e))
-                else:
-                    st.info(_("audio_unavailable"))
 
                 if st.session_state.get("chat_ready_for_analysis"):
                     st.success("✅ " + ("Diagnostic prêt : va dans l'onglet Analyse stratégique."

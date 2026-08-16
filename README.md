@@ -10,8 +10,8 @@ export.
 
 Interface **bilingue français / anglais**. Fonctionnement **hybride** :
 le socle (collecte, stockage, analyse, export) fonctionne 100% hors connexion
-(edge computing) ; le chat IA conversationnel et la transcription audio en ligne
-s'activent uniquement si une connexion Internet est disponible.
+(edge computing) ; le chat IA conversationnel s'active uniquement si une
+connexion Internet est disponible.
 
 ## Fonctionnalités (V1)
 
@@ -30,14 +30,11 @@ s'activent uniquement si une connexion Internet est disponible.
 - ✅ Interface bilingue FR/EN
 - ✅ Stockage 100% local (JSON), aucune dépendance réseau pour l'usage de base
 - ✅ Agent conversationnel **multi-tours avec tool-calling réel** — actif si `ANTHROPIC_API_KEY` est configurée et une connexion est détectée. Il enregistre les informations mentionnées, relance sur les branches manquantes, et signale lui-même quand le diagnostic est prêt pour l'analyse
-- ✅ **Capture audio dans le navigateur** (`st.audio_input`) : transcription automatique puis alimentation du même agent conversationnel, avec relecture obligatoire avant sauvegarde
 - ✅ **Assistant de configuration de mot de passe intégré** : génère le secret à coller dans Streamlit Cloud, sans ligne de commande
 - ✅ Section Entreprise incluse dans les exports PDF/Word du diagnostic
 
 ## Roadmap (V3)
 
-- Enregistrement audio direct dans le navigateur (`st.audio_input`) + transcription → pré-remplissage
-  automatique du formulaire via le même agent conversationnel, avec validation humaine systématique
 - Synchronisation optionnelle vers un espace cloud partagé entre conseillers
 
 ## Démo en ligne
@@ -113,15 +110,8 @@ fonctionne sans connexion Internet.
 ### Activer les fonctionnalités en ligne (optionnel)
 
 ```bash
-pip install anthropic openai   # décommenter dans requirements.txt
+pip install anthropic   # décommenter dans requirements.txt
 export ANTHROPIC_API_KEY="..."       # pour le chat IA de collecte
-export TRANSCRIPTION_API_KEY="..."   # pour la transcription audio en ligne
-```
-
-### Activer la transcription audio hors-ligne (optionnel)
-
-```bash
-pip install openai-whisper
 ```
 
 ## Structure du projet
@@ -144,8 +134,7 @@ modules/
   plan_strategique.py       Génération du plan + validation conseiller
   export.py                  Export PDF / Word (bloqué si non validé)
 agent/orchestrator.py      Agent conversationnel (actif en ligne uniquement)
-audio/                      Transcription en ligne / hors-ligne
-utils/                      i18n, stockage local, détection de connectivité
+utils/                      i18n, stockage local, détection de connectivité, authentification
 storage/                    Diagnostics enregistrés localement (JSON)
 ```
 
