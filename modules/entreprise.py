@@ -38,7 +38,7 @@ def render_histoire(diagnostic: dict, lang: str):
             histoire.pop(i)
             st.rerun()
 
-    if st.button(t("histoire_add", lang)):
+    if st.button(t("histoire_add", lang), key="ent_histoire_add"):
         histoire.append({"date": "", "quoi": "", "pourquoi": ""})
         st.rerun()
 
@@ -86,7 +86,7 @@ def render_parcelles(diagnostic: dict, lang: str):
             st.rerun()
         st.markdown("---")
 
-    if st.button(t("parcelle_add", lang)):
+    if st.button(t("parcelle_add", lang), key="ent_parcelle_add"):
         parcelles.append({"nom": "", "zonage": "", "utilisation": "", "production": "",
                            "surface": 0.0, "statut": t("parcelle_statut_options", lang).split(",")[0],
                            "mise_en_valeur": True})
@@ -116,7 +116,7 @@ def render_calendrier(diagnostic: dict, lang: str):
             calendrier.pop(i)
             st.rerun()
 
-    if st.button(t("calendrier_add", lang)):
+    if st.button(t("calendrier_add", lang), key="ent_calendrier_add"):
         calendrier.append({"activite": "", "type": t("calendrier_type_options", lang).split(",")[0], "mois": []})
         st.rerun()
 
@@ -234,7 +234,7 @@ def render_activites(diagnostic: dict, lang: str):
                 activites.pop(i)
                 st.rerun()
 
-    if st.button(t("activite_add", lang)):
+    if st.button(t("activite_add", lang), key="ent_activite_add"):
         activites.append({"nom": ""})
         st.rerun()
 
@@ -271,7 +271,7 @@ def render_immobilisations(diagnostic: dict, lang: str):
             immos.pop(i)
             st.rerun()
 
-    if st.button(t("immo_add", lang)):
+    if st.button(t("immo_add", lang), key="ent_immo_add"):
         immos.append({"categorie": t("immo_categories", lang).split(",")[0]})
         st.rerun()
 
@@ -333,7 +333,7 @@ def render_bilan(diagnostic: dict, lang: str):
         if cols[2].button(t("remove", lang), key=f"actif_rm_{i}"):
             actif.pop(i)
             st.rerun()
-    if st.button(t("bilan_add_actif", lang)):
+    if st.button(t("bilan_add_actif", lang), key="ent_bilan_add_actif"):
         actif.append({"libelle": "", "valeur": 0.0})
         st.rerun()
     total_actif = sum(float(p.get("valeur", 0) or 0) for p in actif)
@@ -350,7 +350,7 @@ def render_bilan(diagnostic: dict, lang: str):
         if cols[2].button(t("remove", lang), key=f"passif_rm_{i}"):
             passif.pop(i)
             st.rerun()
-    if st.button(t("bilan_add_passif", lang)):
+    if st.button(t("bilan_add_passif", lang), key="ent_bilan_add_passif"):
         passif.append({"libelle": "", "valeur": 0.0})
         st.rerun()
     total_passif = sum(float(p.get("valeur", 0) or 0) for p in passif)
