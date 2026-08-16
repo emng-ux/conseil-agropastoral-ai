@@ -260,6 +260,28 @@ def page_collecte():
     with st.expander(_("identification_title"), expanded=not diagnostic.get("identification")):
         render_identification_form(diagnostic, lang)
 
+    from modules.entreprise import (render_histoire, render_environnement, render_parcelles,
+                                     render_calendrier, render_activites, render_diagnostic_financier,
+                                     render_bilan)
+    with st.expander(_("entreprise_title"), expanded=False):
+        ent_tabs = st.tabs([_("tab_histoire"), _("tab_environnement"), _("tab_parcelles"),
+                            _("tab_calendrier"), _("tab_activites"), _("tab_diagnostic_financier"),
+                            _("tab_bilan")])
+        with ent_tabs[0]:
+            render_histoire(diagnostic, lang)
+        with ent_tabs[1]:
+            render_environnement(diagnostic, lang)
+        with ent_tabs[2]:
+            render_parcelles(diagnostic, lang)
+        with ent_tabs[3]:
+            render_calendrier(diagnostic, lang)
+        with ent_tabs[4]:
+            render_activites(diagnostic, lang)
+        with ent_tabs[5]:
+            render_diagnostic_financier(diagnostic, lang)
+        with ent_tabs[6]:
+            render_bilan(diagnostic, lang)
+
     col1, col2 = st.columns([1, 2])
     with col1:
         st.plotly_chart(_radar_chart(diagnostic), use_container_width=True)
