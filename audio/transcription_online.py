@@ -25,7 +25,7 @@ def transcribe(audio_file, lang: str = "fr") -> str:
 
     client = openai.OpenAI(api_key=os.environ["TRANSCRIPTION_API_KEY"])
     result = client.audio.transcriptions.create(
-        model="whisper-1",
+        model="gpt-4o-transcribe",
         file=audio_file,
         language=lang,
     )
