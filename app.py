@@ -108,6 +108,21 @@ with st.sidebar:
             logout()
             st.rerun()
 
+    from utils.auth import auth_configured
+    if not auth_configured():
+        with st.expander("🔐 " + _("setup_auth_title")):
+            st.caption(_("setup_auth_intro"))
+            su_user = st.text_input(_("setup_auth_username"), key="setup_auth_user")
+            su_pass = st.text_input(_("setup_auth_password"), type="password", key="setup_auth_pass")
+            if st.button(_("setup_auth_generate"), key="setup_auth_btn"):
+                if su_user and su_pass:
+                    import hashlib
+                    _hash = hashlib.sha256(su_pass.encode("utf-8")).hexdigest()
+                    st.code(f'[auth_users]\n{su_user} = "{_hash}"', language="toml")
+                    st.caption(_("setup_auth_instructions"))
+                else:
+                    st.warning(_("setup_auth_missing"))
+
     st.markdown("---")
     st.session_state.reveal_names = st.toggle(
         _("reveal_names_toggle"), value=st.session_state.get("reveal_names", False))
@@ -326,6 +341,43 @@ def page_collecte():
                         st.rerun()
                     except Exception as e:
                         st.error(str(e))
+
+                # --- Capture audio : transcrit puis alimente le même pipeline agentique
+                # que le chat texte ci-dessus (mêmes garanties : rien n'est jamais
+                # sauvegardé sans que le conseiller relise et valide le formulaire). ---
+                from audio.transcription_online import online_transcription_available, transcribe as transcribe_audio
+                st.markdown(f"**{_('audio_upload')}**")
+                if online_transcription_available():
+                    audio_value = st.audio_input(_("audio_record_label"), key=f"audio_input_{st.session_state.current_diagnostic_id}")
+                    if audio_value is not None:
+                        audio_hash_key = f"audio_processed_{st.session_state.current_diagnostic_id}"
+                        import hashlib
+                        audio_bytes = audio_value.getvalue()
+                        current_hash = hashlib.md5(audio_bytes).hexdigest()
+                        if st.session_state.get(audio_hash_key) != current_hash:
+                            with st.spinner(_("audio_transcribing")):
+                                try:
+                                    import io as _io
+
+                                    class _NamedAudio(_io.BytesIO):
+                                        name = "recording.wav"
+
+                                    audio_file_obj = _NamedAudio(audio_bytes)
+                                    transcribed_text = transcribe_audio(audio_file_obj, lang)
+                                    st.session_state[audio_hash_key] = current_hash
+                                    if transcribed_text.strip():
+                                        result = run_turn(st.session_state[chat_key], transcribed_text,
+                                                           diagnostic, lang)
+                                        st.session_state[chat_key] = result["conversation_history"]
+                                        st.session_state.current_diagnostic = diagnostic
+                                        save_diagnostic(st.session_state.current_diagnostic_id, diagnostic)
+                                        if result["ready_for_analysis"]:
+                                            st.session_state.chat_ready_for_analysis = True
+                                        st.rerun()
+                                except Exception as e:
+                                    st.error(str(e))
+                else:
+                    st.info(_("audio_unavailable"))
 
                 if st.session_state.get("chat_ready_for_analysis"):
                     st.success("✅ " + ("Diagnostic prêt : va dans l'onglet Analyse stratégique."

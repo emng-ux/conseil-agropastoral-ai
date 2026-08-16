@@ -30,7 +30,9 @@ s'activent uniquement si une connexion Internet est disponible.
 - ✅ Interface bilingue FR/EN
 - ✅ Stockage 100% local (JSON), aucune dépendance réseau pour l'usage de base
 - ✅ Agent conversationnel **multi-tours avec tool-calling réel** — actif si `ANTHROPIC_API_KEY` est configurée et une connexion est détectée. Il enregistre les informations mentionnées, relance sur les branches manquantes, et signale lui-même quand le diagnostic est prêt pour l'analyse
-- ✅ Squelette transcription audio en ligne et hors-ligne (voir `audio/`)
+- ✅ **Capture audio dans le navigateur** (`st.audio_input`) : transcription automatique puis alimentation du même agent conversationnel, avec relecture obligatoire avant sauvegarde
+- ✅ **Assistant de configuration de mot de passe intégré** : génère le secret à coller dans Streamlit Cloud, sans ligne de commande
+- ✅ Section Entreprise incluse dans les exports PDF/Word du diagnostic
 
 ## Roadmap (V3)
 

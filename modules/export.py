@@ -34,6 +34,189 @@ def _identity_label(diagnostic: dict, lang: str, include_real_name: bool) -> str
     return f"{prefix}: {code}"
 
 
+def _add_entreprise_section_word(doc, diagnostic: dict, lang: str):
+    """Ajoute la section Entreprise (histoire, environnement, parcelles,
+    calendrier, activités avec marges, diagnostic financier, immobilisations,
+    bilan) au document Word. Données non identifiantes : toujours incluses,
+    indépendamment du masquage du nom/contact."""
+    from modules.entreprise import compute_marge_brute, compute_marge_directe, compute_diagnostic_financier
+
+    ent = diagnostic.get("entreprise", {})
+    if not ent:
+        return
+
+    doc.add_heading("Entreprise" if lang == "fr" else "Business", level=1)
+
+    histoire = ent.get("histoire", [])
+    if histoire:
+        doc.add_heading("Histoire" if lang == "fr" else "History", level=2)
+        for h in histoire:
+            doc.add_paragraph(f"{h.get('date', '')} — {h.get('quoi', '')} ({h.get('pourquoi', '')})",
+                               style="List Bullet")
+
+    env = ent.get("environnement", {})
+    if env.get("marche_clients_concurrents") or env.get("partenaires_fournisseurs_milieu"):
+        doc.add_heading("Environnement" if lang == "fr" else "Environment", level=2)
+        if env.get("marche_clients_concurrents"):
+            doc.add_paragraph(env["marche_clients_concurrents"])
+        if env.get("partenaires_fournisseurs_milieu"):
+            doc.add_paragraph(env["partenaires_fournisseurs_milieu"])
+
+    parcelles = ent.get("parcelles", [])
+    if parcelles:
+        doc.add_heading("Plan de localisation" if lang == "fr" else "Site plan", level=2)
+        for p in parcelles:
+            doc.add_paragraph(
+                f"{p.get('nom', '')} — {p.get('zonage', '')} — {p.get('utilisation', '')} "
+                f"— {p.get('production', '')} — {p.get('surface', 0)} ha — {p.get('statut', '')}"
+                f"{'' if p.get('mise_en_valeur', True) else (' (non mise en valeur)' if lang == 'fr' else ' (unused)')}",
+                style="List Bullet")
+
+    calendrier = ent.get("calendrier", [])
+    if calendrier:
+        doc.add_heading("Calendrier des activités" if lang == "fr" else "Activity calendar", level=2)
+        for c in calendrier:
+            doc.add_paragraph(f"{c.get('activite', '')} ({c.get('type', '')}): {', '.join(c.get('mois', []))}",
+                               style="List Bullet")
+
+    activites = ent.get("activites", [])
+    if activites:
+        doc.add_heading("Description des activités" if lang == "fr" else "Activity description", level=2)
+        for a in activites:
+            doc.add_heading(a.get("nom", "") or "-", level=3)
+            mb, md = compute_marge_brute(a), compute_marge_directe(a)
+            doc.add_paragraph(
+                f"{'Marge brute' if lang == 'fr' else 'Gross margin'}: {mb:,.0f} | "
+                f"{'Marge directe' if lang == 'fr' else 'Direct margin'}: {md:,.0f}")
+            if a.get("finalites_objectifs"):
+                doc.add_paragraph(a["finalites_objectifs"])
+            if a.get("points_forts"):
+                doc.add_paragraph(f"{'Points forts' if lang == 'fr' else 'Strengths'}: {a['points_forts']}")
+            if a.get("risques"):
+                doc.add_paragraph(f"{'Risques' if lang == 'fr' else 'Risks'}: {a['risques']}")
+
+    if ent.get("diagnostic_financier") or activites:
+        results = compute_diagnostic_financier(diagnostic)
+        doc.add_heading("Diagnostic économique et financier global" if lang == "fr"
+                         else "Overall economic and financial diagnosis", level=2)
+        doc.add_paragraph(f"{'Marge brute globale' if lang == 'fr' else 'Overall gross margin'}: "
+                           f"{results['marge_brute_globale']:,.0f}")
+        doc.add_paragraph(f"EBE: {results['ebe']:,.0f}")
+        doc.add_paragraph(f"{'Marge de sécurité' if lang == 'fr' else 'Safety margin'}: "
+                           f"{results['marge_securite']:,.0f}")
+
+    immos = ent.get("immobilisations", [])
+    if immos:
+        doc.add_heading("Immobilisations" if lang == "fr" else "Assets", level=2)
+        for im in immos:
+            doc.add_paragraph(
+                f"{im.get('categorie', '')} ({im.get('annee_acquisition', '')}) — "
+                f"{'valeur actuelle' if lang == 'fr' else 'current value'}: {im.get('valeur_actuelle', 0):,.0f}",
+                style="List Bullet")
+
+    bilan = ent.get("bilan", {})
+    if bilan.get("actif") or bilan.get("passif"):
+        doc.add_heading("Bilan" if lang == "fr" else "Balance sheet", level=2)
+        if bilan.get("date_cloture"):
+            doc.add_paragraph(f"{'Date de clôture' if lang == 'fr' else 'Closing date'}: {bilan['date_cloture']}")
+        total_actif = sum(float(p.get("valeur", 0) or 0) for p in bilan.get("actif", []))
+        total_passif = sum(float(p.get("valeur", 0) or 0) for p in bilan.get("passif", []))
+        doc.add_paragraph(f"{'Total actif' if lang == 'fr' else 'Total assets'}: {total_actif:,.0f} — "
+                           f"{'Total passif' if lang == 'fr' else 'Total liabilities'}: {total_passif:,.0f}")
+
+
+def _add_entreprise_section_pdf(pdf, diagnostic: dict, lang: str):
+    """Équivalent PDF de _add_entreprise_section_word."""
+    from modules.entreprise import compute_marge_brute, compute_marge_directe, compute_diagnostic_financier
+
+    ent = diagnostic.get("entreprise", {})
+    if not ent:
+        return
+
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.title_line("Entreprise" if lang == "fr" else "Business")
+    pdf.ln(1)
+
+    histoire = ent.get("histoire", [])
+    if histoire:
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.title_line("Histoire" if lang == "fr" else "History")
+        pdf.set_font("Helvetica", size=10)
+        for h in histoire:
+            pdf.line(f"- {h.get('date', '')} - {h.get('quoi', '')} ({h.get('pourquoi', '')})", height=6)
+
+    env = ent.get("environnement", {})
+    if env.get("marche_clients_concurrents") or env.get("partenaires_fournisseurs_milieu"):
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.title_line("Environnement" if lang == "fr" else "Environment")
+        pdf.set_font("Helvetica", size=10)
+        if env.get("marche_clients_concurrents"):
+            pdf.line(env["marche_clients_concurrents"], height=6)
+        if env.get("partenaires_fournisseurs_milieu"):
+            pdf.line(env["partenaires_fournisseurs_milieu"], height=6)
+
+    parcelles = ent.get("parcelles", [])
+    if parcelles:
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.title_line("Plan de localisation" if lang == "fr" else "Site plan")
+        pdf.set_font("Helvetica", size=10)
+        for p in parcelles:
+            pdf.line(f"- {p.get('nom', '')} - {p.get('zonage', '')} - {p.get('utilisation', '')} "
+                     f"- {p.get('surface', 0)} ha - {p.get('statut', '')}", height=6)
+
+    calendrier = ent.get("calendrier", [])
+    if calendrier:
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.title_line("Calendrier des activites" if lang == "fr" else "Activity calendar")
+        pdf.set_font("Helvetica", size=10)
+        for c in calendrier:
+            pdf.line(f"- {c.get('activite', '')} ({c.get('type', '')}): {', '.join(c.get('mois', []))}", height=6)
+
+    activites = ent.get("activites", [])
+    if activites:
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.title_line("Description des activites" if lang == "fr" else "Activity description")
+        pdf.set_font("Helvetica", size=10)
+        for a in activites:
+            mb, md = compute_marge_brute(a), compute_marge_directe(a)
+            pdf.line(f"- {a.get('nom', '') or '-'} : marge brute {mb:,.0f} / marge directe {md:,.0f}"
+                     if lang == "fr" else
+                     f"- {a.get('nom', '') or '-'}: gross margin {mb:,.0f} / direct margin {md:,.0f}", height=6)
+
+    if ent.get("diagnostic_financier") or activites:
+        results = compute_diagnostic_financier(diagnostic)
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.title_line("Diagnostic economique et financier" if lang == "fr" else "Financial diagnosis")
+        pdf.set_font("Helvetica", size=10)
+        pdf.line(f"- Marge brute globale: {results['marge_brute_globale']:,.0f}", height=6)
+        pdf.line(f"- EBE: {results['ebe']:,.0f}", height=6)
+        pdf.line(f"- Marge de securite: {results['marge_securite']:,.0f}"
+                 if lang == "fr" else f"- Safety margin: {results['marge_securite']:,.0f}", height=6)
+
+    immos = ent.get("immobilisations", [])
+    if immos:
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.title_line("Immobilisations" if lang == "fr" else "Assets")
+        pdf.set_font("Helvetica", size=10)
+        for im in immos:
+            pdf.line(f"- {im.get('categorie', '')} ({im.get('annee_acquisition', '')}): "
+                     f"{im.get('valeur_actuelle', 0):,.0f}", height=6)
+
+    bilan = ent.get("bilan", {})
+    if bilan.get("actif") or bilan.get("passif"):
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.title_line("Bilan" if lang == "fr" else "Balance sheet")
+        pdf.set_font("Helvetica", size=10)
+        if bilan.get("date_cloture"):
+            pdf.line(f"- {'Date de cloture' if lang == 'fr' else 'Closing date'}: {bilan['date_cloture']}", height=6)
+        total_actif = sum(float(p.get("valeur", 0) or 0) for p in bilan.get("actif", []))
+        total_passif = sum(float(p.get("valeur", 0) or 0) for p in bilan.get("passif", []))
+        pdf.line(f"- Total actif: {total_actif:,.0f} | Total passif: {total_passif:,.0f}"
+                 if lang == "fr" else
+                 f"- Total assets: {total_actif:,.0f} | Total liabilities: {total_passif:,.0f}", height=6)
+    pdf.ln(2)
+
+
 def export_word_bytes(diagnostic: dict, plan: dict, lang: str = "fr", swot: dict = None,
                        include_real_name: bool = False) -> bytes:
     _check_validated(diagnostic)
@@ -245,6 +428,8 @@ def export_diagnostic_word_bytes(diagnostic: dict, lang: str = "fr",
                 else:
                     doc.add_paragraph(("Contact masqué" if lang == "fr" else "Contact masked"))
 
+    _add_entreprise_section_word(doc, diagnostic, lang)
+
     schema = load_schema()["branches"]
     etoile = diagnostic.get("etoile", {})
 
@@ -329,6 +514,8 @@ def export_diagnostic_pdf_bytes(diagnostic: dict, lang: str = "fr",
                     pdf.line("- " + ("Contact masque" if lang == "fr" else "Contact masked"), height=6)
 
     pdf.ln(4)
+
+    _add_entreprise_section_pdf(pdf, diagnostic, lang)
 
     schema = load_schema()["branches"]
     etoile = diagnostic.get("etoile", {})

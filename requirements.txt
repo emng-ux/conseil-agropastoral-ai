@@ -1,4 +1,4 @@
-streamlit>=1.38
+streamlit>=1.40
 plotly>=5.22
 pandas>=2.2
 openpyxl>=3.1
@@ -12,7 +12,7 @@ anthropic>=0.34
 requests>=2.31
 
 # Dépendance optionnelle pour la transcription cloud (à activer selon le fournisseur choisi) :
-# openai>=1.40
+openai>=1.40
 
 # Dépendance optionnelle pour la transcription audio hors-ligne (edge computing) :
 # openai-whisper
