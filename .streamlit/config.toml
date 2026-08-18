@@ -3,3 +3,11 @@
 # via le manifest et le service worker exposés sous /app/static/.
 [server]
 enableStaticServing = true
+
+# Identité visuelle "forêt → récolte" (vert profond vers doré), en complément
+# du CSS injecté dans app.py pour les composants non couverts par le CSS.
+[theme]
+primaryColor = "#2e7d32"
+backgroundColor = "#fbfaf6"
+secondaryBackgroundColor = "#f2f7ee"
+textColor = "#212121"

@@ -39,6 +39,113 @@ st.markdown("""
     </script>
 """, unsafe_allow_html=True)
 
+# --- Identité visuelle : palette "forêt → récolte" (vert profond vers doré),
+# choisie pour évoquer la croissance des cultures et la récolte plutôt qu'un
+# dégradé générique. Injection CSS ciblée sur les composants Streamlit
+# principaux (sidebar, boutons, cartes, onglets) — dégradation silencieuse
+# si une future version de Streamlit renomme ses data-testid internes. ---
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --forest-deep: #1b5e20;
+    --forest-mid: #2e7d32;
+    --forest-light: #66bb6a;
+    --gold-harvest: #f9a825;
+    --gold-light: #ffca28;
+    --earth-brown: #6d4c41;
+    --bg-warm: #fbfaf6;
+    --bg-panel: #f2f7ee;
+    --gradient-main: linear-gradient(90deg, var(--forest-deep) 0%, var(--forest-mid) 50%, var(--gold-harvest) 100%);
+}
+
+html, body, [class*="css"] { font-family: 'Inter', -apple-system, sans-serif; }
+h1, h2, h3, h4 { font-family: 'Sora', 'Inter', sans-serif !important; letter-spacing: -0.01em; }
+h1 { color: var(--forest-deep) !important; font-weight: 800 !important; }
+
+.stApp { background-color: var(--bg-warm); }
+
+/* Barre latérale : léger dégradé vertical + liseré doré en tête */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-warm) 55%);
+    border-right: 3px solid transparent;
+    border-image: var(--gradient-main) 1;
+}
+section[data-testid="stSidebar"] h2 {
+    background: var(--gradient-main);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800 !important;
+}
+
+/* Boutons primaires : dégradé forêt -> or, avec effet de survol */
+.stButton > button[kind="primary"] {
+    background: var(--gradient-main);
+    background-size: 160% 160%;
+    border: none;
+    color: white;
+    font-weight: 600;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(27, 94, 32, 0.25);
+    transition: all 0.25s ease;
+}
+.stButton > button[kind="primary"]:hover {
+    background-position: 100% 0;
+    box-shadow: 0 5px 16px rgba(27, 94, 32, 0.35);
+    transform: translateY(-1px);
+}
+.stButton > button:not([kind="primary"]) {
+    border-radius: 10px;
+    border: 1.5px solid var(--forest-light);
+    color: var(--forest-deep);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+.stButton > button:not([kind="primary"]):hover {
+    background: var(--bg-panel);
+    border-color: var(--forest-mid);
+}
+
+/* Cartes (containers avec bordure) : angles arrondis, ombre douce, liseré doré au survol */
+div[data-testid="stVerticalBlockBorderWrapper"] > div {
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(27, 94, 32, 0.08);
+    transition: box-shadow 0.2s ease;
+}
+div[data-testid="stVerticalBlockBorderWrapper"]:hover > div {
+    box-shadow: 0 4px 14px rgba(249, 168, 37, 0.18);
+}
+
+/* Métriques : valeur en dégradé pour les indicateurs clés */
+div[data-testid="stMetricValue"] {
+    background: var(--gradient-main);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+/* Onglets : soulignement doré sur l'onglet actif */
+.stTabs [aria-selected="true"] {
+    color: var(--forest-deep) !important;
+    border-bottom: 3px solid var(--gold-harvest) !important;
+    font-weight: 600;
+}
+
+/* Expanders : coins arrondis et fond légèrement teinté */
+div[data-testid="stExpander"] {
+    border-radius: 12px;
+    border: 1px solid var(--bg-panel);
+    overflow: hidden;
+}
+
+/* Barres de progression (radar/plotly restent inchangées, mais st.progress si utilisé) */
+.stProgress > div > div { background: var(--gradient-main) !important; }
+</style>
+""", unsafe_allow_html=True)
+
 # Sécurise la lecture des secrets (clés API) : sur certaines configurations de
 # Streamlit Cloud, les secrets ne sont accessibles que via st.secrets et pas
 # automatiquement copiés dans os.environ. On les recopie explicitement ici pour

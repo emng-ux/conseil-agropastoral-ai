@@ -8,7 +8,9 @@ Matrice d'Ansoff**), avec génération d'un **plan stratégique** et d'un **plan
 d'actions** téléchargeables (PDF / Word), **validés par le conseiller** avant tout
 export.
 
-Interface **bilingue français / anglais**. Fonctionnement **hybride** :
+Interface **bilingue français / anglais**, avec une **identité visuelle "forêt → récolte"**
+(dégradé vert profond vers doré, typographies Sora/Inter) plutôt qu'un habillage
+générique. Fonctionnement **hybride** :
 le socle (collecte, stockage, analyse, export) fonctionne 100% hors connexion
 (edge computing) ; le chat IA conversationnel s'active uniquement si une
 connexion Internet est disponible.
