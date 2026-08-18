@@ -64,32 +64,87 @@ def render_parcelles(diagnostic: dict, lang: str):
     parcelles = ent.setdefault("parcelles", [])
 
     for i, p in enumerate(list(parcelles)):
-        cols = st.columns([2, 2, 2, 2, 1, 2, 1])
+        cols = st.columns([2, 2, 2, 2])
         p["nom"] = cols[0].text_input(t("parcelle_nom", lang), value=p.get("nom", ""), key=f"pc_nom_{i}")
-        p["zonage"] = cols[1].text_input(t("parcelle_zonage", lang), value=p.get("zonage", ""),
+        p["site"] = cols[1].text_input(t("parcelle_site", lang), value=p.get("site", ""),
+                                        help=t("parcelle_site_help", lang), key=f"pc_site_{i}")
+        p["zonage"] = cols[2].text_input(t("parcelle_zonage", lang), value=p.get("zonage", ""),
                                           key=f"pc_zonage_{i}")
-        p["utilisation"] = cols[2].text_input(t("parcelle_utilisation", lang), value=p.get("utilisation", ""),
+        p["utilisation"] = cols[3].text_input(t("parcelle_utilisation", lang), value=p.get("utilisation", ""),
                                                key=f"pc_util_{i}")
-        p["production"] = cols[3].text_input(t("parcelle_production", lang), value=p.get("production", ""),
-                                              key=f"pc_prod_{i}")
-        p["surface"] = cols[4].number_input(t("parcelle_surface", lang), min_value=0.0,
-                                             value=float(p.get("surface", 0.0)), key=f"pc_surf_{i}")
+        cols2 = st.columns([2, 2, 2, 1])
+        p["production"] = cols2[0].text_input(t("parcelle_production", lang), value=p.get("production", ""),
+                                               key=f"pc_prod_{i}")
+        p["surface"] = cols2[1].number_input(t("parcelle_surface", lang), min_value=0.0,
+                                              value=float(p.get("surface", 0.0)), key=f"pc_surf_{i}")
         statut_options = t("parcelle_statut_options", lang).split(",")
         current = p.get("statut", statut_options[0])
         idx = statut_options.index(current) if current in statut_options else 0
-        p["statut"] = cols[5].selectbox(t("parcelle_statut", lang), statut_options, index=idx,
-                                         key=f"pc_statut_{i}")
-        p["mise_en_valeur"] = cols[6].checkbox(t("parcelle_mise_en_valeur", lang),
-                                                value=p.get("mise_en_valeur", True), key=f"pc_mev_{i}")
+        p["statut"] = cols2[2].selectbox(t("parcelle_statut", lang), statut_options, index=idx,
+                                          key=f"pc_statut_{i}")
+        p["mise_en_valeur"] = cols2[3].checkbox(t("parcelle_mise_en_valeur", lang),
+                                                 value=p.get("mise_en_valeur", True), key=f"pc_mev_{i}")
         if st.button(t("remove", lang), key=f"pc_rm_{i}"):
             parcelles.pop(i)
             st.rerun()
         st.markdown("---")
 
     if st.button(t("parcelle_add", lang), key="ent_parcelle_add"):
-        parcelles.append({"nom": "", "zonage": "", "utilisation": "", "production": "",
+        parcelles.append({"nom": "", "site": "", "zonage": "", "utilisation": "", "production": "",
                            "surface": 0.0, "statut": t("parcelle_statut_options", lang).split(",")[0],
                            "mise_en_valeur": True})
+        st.rerun()
+
+
+def render_siege_batiments_paysage(diagnostic: dict, lang: str):
+    """Siège de l'EFA/OP, bâtiments d'exploitation, et éléments du paysage —
+    utilisés par le générateur de schéma pour positionner l'exploitation dans
+    son environnement (au-delà des seules parcelles cultivées)."""
+    ent = _entreprise(diagnostic)
+
+    st.markdown(f"**{t('siege_title', lang)}**")
+    st.caption(t("siege_help", lang))
+    siege = ent.setdefault("siege", {})
+    sc1, sc2 = st.columns(2)
+    siege["nom"] = sc1.text_input(t("siege_nom", lang), value=siege.get("nom", ""), key="siege_nom")
+    siege["site"] = sc2.text_input(t("parcelle_site", lang), value=siege.get("site", ""),
+                                    help=t("parcelle_site_help", lang), key="siege_site")
+    siege["description"] = st.text_area(t("siege_description", lang), value=siege.get("description", ""),
+                                         key="siege_desc")
+
+    st.markdown(f"**{t('batiments_title', lang)}**")
+    st.caption(t("batiments_help", lang))
+    batiments = ent.setdefault("batiments", [])
+    for i, b in enumerate(list(batiments)):
+        cols = st.columns([2, 2, 2, 1])
+        b["type"] = cols[0].text_input(t("batiment_type", lang), value=b.get("type", ""), key=f"bat_type_{i}")
+        usage_options = t("batiment_usage_options", lang).split(",")
+        cur = b.get("usage", usage_options[0])
+        idx = usage_options.index(cur) if cur in usage_options else 0
+        b["usage"] = cols[1].selectbox(t("batiment_usage", lang), usage_options, index=idx, key=f"bat_usage_{i}")
+        b["site"] = cols[2].text_input(t("parcelle_site", lang), value=b.get("site", ""), key=f"bat_site_{i}")
+        if cols[3].button(t("remove", lang), key=f"bat_rm_{i}"):
+            batiments.pop(i)
+            st.rerun()
+    if st.button(t("batiment_add", lang), key="ent_batiment_add"):
+        batiments.append({"type": "", "usage": t("batiment_usage_options", lang).split(",")[0], "site": ""})
+        st.rerun()
+
+    st.markdown(f"**{t('paysage_title', lang)}**")
+    st.caption(t("paysage_help", lang))
+    paysage = ent.setdefault("paysage", [])
+    for i, pa in enumerate(list(paysage)):
+        cols = st.columns([2, 2, 2, 1])
+        pa["element"] = cols[0].text_input(t("paysage_element", lang), value=pa.get("element", ""),
+                                            key=f"pay_elem_{i}")
+        pa["utilisation"] = cols[1].text_input(t("paysage_utilisation", lang), value=pa.get("utilisation", ""),
+                                                key=f"pay_util_{i}")
+        pa["site"] = cols[2].text_input(t("parcelle_site", lang), value=pa.get("site", ""), key=f"pay_site_{i}")
+        if cols[3].button(t("remove", lang), key=f"pay_rm_{i}"):
+            paysage.pop(i)
+            st.rerun()
+    if st.button(t("paysage_add", lang), key="ent_paysage_add"):
+        paysage.append({"element": "", "utilisation": "", "site": ""})
         st.rerun()
 
 

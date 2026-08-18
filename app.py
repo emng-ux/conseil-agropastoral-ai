@@ -290,7 +290,8 @@ def page_collecte():
         render_identification_form(diagnostic, lang)
 
     from modules.entreprise import (render_histoire, render_environnement, render_parcelles,
-                                     render_calendrier, render_activites, render_diagnostic_financier)
+                                     render_siege_batiments_paysage, render_calendrier, render_activites,
+                                     render_diagnostic_financier)
     from modules.bilan import render_bilan
     with st.expander(_("entreprise_title"), expanded=False):
         ent_tabs = st.tabs([_("tab_histoire"), _("tab_environnement"), _("tab_parcelles"),
@@ -302,6 +303,49 @@ def page_collecte():
             render_environnement(diagnostic, lang)
         with ent_tabs[2]:
             render_parcelles(diagnostic, lang)
+            st.markdown("---")
+            render_siege_batiments_paysage(diagnostic, lang)
+            st.markdown("---")
+
+            from modules.schema_visuel import (generate_site_plan_svg, generate_general_plan_svg,
+                                                list_sites, has_enough_data)
+            st.markdown(f"### {_('schema_title')}")
+            st.caption(_("schema_help"))
+
+            if not has_enough_data(diagnostic):
+                st.info(_("schema_no_data"))
+            else:
+                sites = list_sites(diagnostic)
+                if st.button(_("schema_generate_button"), key="schema_generate_btn"):
+                    st.session_state["schema_generated"] = True
+
+                if st.session_state.get("schema_generated"):
+                    if sites:
+                        st.caption(_("schema_multi_site_help"))
+                        svg_general = generate_general_plan_svg(diagnostic, lang)
+                        st.markdown(f"#### {_('schema_general_plan')}")
+                        st.markdown(f'<div style="overflow-x:auto">{svg_general}</div>', unsafe_allow_html=True)
+                        st.download_button(
+                            _("schema_download_general"), data=svg_general,
+                            file_name=f"plan_general_{diagnostic.get('code', 'diagnostic')}.svg",
+                            mime="image/svg+xml", key="dl_general")
+
+                        selected_site = st.selectbox(_("schema_select_site"), sites, key="schema_site_select")
+                        svg_site = generate_site_plan_svg(diagnostic, lang, site=selected_site,
+                                                           include_flux=False)
+                        st.markdown(f"#### {_('schema_site_plan_title')} : {selected_site}")
+                        st.markdown(f'<div style="overflow-x:auto">{svg_site}</div>', unsafe_allow_html=True)
+                        st.download_button(
+                            _("schema_download"), data=svg_site,
+                            file_name=f"plan_{selected_site}_{diagnostic.get('code', 'diagnostic')}.svg",
+                            mime="image/svg+xml", key="dl_site")
+                    else:
+                        svg_content = generate_site_plan_svg(diagnostic, lang, site=None, include_flux=True)
+                        st.markdown(f'<div style="overflow-x:auto">{svg_content}</div>', unsafe_allow_html=True)
+                        st.download_button(
+                            _("schema_download"), data=svg_content,
+                            file_name=f"schema_{diagnostic.get('code', 'diagnostic')}.svg",
+                            mime="image/svg+xml", key="dl_mono")
         with ent_tabs[3]:
             render_calendrier(diagnostic, lang)
         with ent_tabs[4]:
