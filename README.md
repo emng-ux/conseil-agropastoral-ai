@@ -35,6 +35,7 @@ connexion Internet est disponible.
 - ✅ **Bilan comptable structuré** (actif immobilisé/circulant, passif capitaux propres/dettes) sur deux exercices (début N-1, fin N), avec calcul automatique du **FDR**, du **BFR** et du **tableau de financement** (emplois/ressources)
 - ✅ **Schéma visuel auto-généré** (SVG, sur bouton "Générer") de l'EFA/OP : siège, bâtiments d'exploitation, éléments du paysage, parcelles (avec zonage et mise en valeur) et activités avec leurs flux entrants/sortants — gestion multi-sites (plan général + plan détaillé par site)
 - ✅ **Tableau des amortissements** (sur bouton, sous l'onglet Moyens de production) généré à partir des immobilisations saisies — le foncier n'est jamais amorti, conformément à la règle comptable
+- ✅ **Plan de financement** (Ressources R1-R5 / Emplois E1-E5) avec calcul automatique de 10 indicateurs (taux d'autofinancement, taux de financement externe, capacité de remboursement, etc.) et **qualification automatique** de la situation financière (autonomie forte, dépendance externe, tension de trésorerie, BFR excessif...)
 - ✅ **Installable comme PWA sur Android** (icône écran d'accueil, plein écran)
 - ✅ **Script d'installation Windows en 1 clic** (`install_windows.bat`)
 

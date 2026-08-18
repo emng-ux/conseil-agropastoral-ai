@@ -296,7 +296,7 @@ def page_collecte():
     with st.expander(_("entreprise_title"), expanded=False):
         ent_tabs = st.tabs([_("tab_histoire"), _("tab_environnement"), _("tab_parcelles"),
                             _("tab_calendrier"), _("tab_activites"), _("tab_diagnostic_financier"),
-                            _("tab_bilan")])
+                            _("tab_bilan"), _("tab_plan_financement")])
         with ent_tabs[0]:
             render_histoire(diagnostic, lang)
         with ent_tabs[1]:
@@ -354,6 +354,15 @@ def page_collecte():
             render_diagnostic_financier(diagnostic, lang)
         with ent_tabs[6]:
             render_bilan(diagnostic, lang)
+        with ent_tabs[7]:
+            from modules.plan_financement import render_plan_financement, render_resultats_plan_financement
+            st.caption(_("plan_financement_help"))
+            render_plan_financement(diagnostic, lang)
+            st.markdown("---")
+            if st.button(_("plan_financement_generate_button"), key="pf_generate_btn"):
+                st.session_state["plan_financement_generated"] = True
+            if st.session_state.get("plan_financement_generated"):
+                render_resultats_plan_financement(diagnostic, lang)
 
     col1, col2 = st.columns([1, 2])
     with col1:
