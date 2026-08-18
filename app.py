@@ -412,6 +412,10 @@ def page_collecte():
         for tab, key in zip(tabs, branch_keys()):
             with tab:
                 render_branch_form(key, diagnostic, lang)
+                if key == "moyens_production":
+                    st.markdown("---")
+                    from modules.amortissements import render_tableau_amortissements
+                    render_tableau_amortissements(diagnostic, lang)
 
         if st.button(_("save"), type="primary"):
             save_diagnostic(st.session_state.current_diagnostic_id, diagnostic)

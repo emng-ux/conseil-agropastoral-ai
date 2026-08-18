@@ -34,6 +34,7 @@ connexion Internet est disponible.
 - ✅ Section Entreprise incluse dans les exports PDF/Word du diagnostic
 - ✅ **Bilan comptable structuré** (actif immobilisé/circulant, passif capitaux propres/dettes) sur deux exercices (début N-1, fin N), avec calcul automatique du **FDR**, du **BFR** et du **tableau de financement** (emplois/ressources)
 - ✅ **Schéma visuel auto-généré** (SVG, sur bouton "Générer") de l'EFA/OP : siège, bâtiments d'exploitation, éléments du paysage, parcelles (avec zonage et mise en valeur) et activités avec leurs flux entrants/sortants — gestion multi-sites (plan général + plan détaillé par site)
+- ✅ **Tableau des amortissements** (sur bouton, sous l'onglet Moyens de production) généré à partir des immobilisations saisies — le foncier n'est jamais amorti, conformément à la règle comptable
 - ✅ **Installable comme PWA sur Android** (icône écran d'accueil, plein écran)
 - ✅ **Script d'installation Windows en 1 clic** (`install_windows.bat`)
 

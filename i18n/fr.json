@@ -299,5 +299,14 @@
   "schema_general_plan": "Plan général (tous les sites)",
   "schema_site_plan_title": "Plan du site",
   "schema_multi_site_help": "Plusieurs sites détectés : un plan général et un plan détaillé par site sont disponibles.",
-  "schema_download_general": "⬇️ Télécharger le plan général (SVG)"
+  "schema_download_general": "⬇️ Télécharger le plan général (SVG)",
+  "amortissements_title": "📉 Tableau des amortissements",
+  "amortissements_help": "Généré automatiquement à partir des immobilisations saisies dans l'onglet Entreprise > Diagnostic financier. Le foncier (terrains) ne s'amortit pas.",
+  "amortissements_no_data": "Aucune immobilisation saisie pour l'instant. Renseigne-les dans l'onglet 'Entreprise' > 'Diagnostic financier' > 'Immobilisations'.",
+  "amortissements_generate_button": "📉 Générer le tableau des amortissements",
+  "amortissements_non_amortissable": "Non amortissable",
+  "amortissements_total_valeur_achat": "Total valeur d'achat",
+  "amortissements_total_valeur_actuelle": "Total valeur actuelle",
+  "amortissements_total_amortissement": "Total amortissement",
+  "amortissements_foncier_note": "ℹ️ Le foncier (terrains) ne s'amortit pas comptablement — toujours affiché comme 'Non amortissable', quelle que soit la valeur éventuellement saisie."
 }

@@ -299,5 +299,14 @@
   "schema_general_plan": "General plan (all sites)",
   "schema_site_plan_title": "Site plan",
   "schema_multi_site_help": "Multiple sites detected: a general plan and a detailed plan per site are available.",
-  "schema_download_general": "⬇️ Download the general plan (SVG)"
+  "schema_download_general": "⬇️ Download the general plan (SVG)",
+  "amortissements_title": "📉 Depreciation schedule",
+  "amortissements_help": "Automatically generated from the assets entered in the Business > Financial diagnosis tab. Land is not depreciable.",
+  "amortissements_no_data": "No assets entered yet. Fill them in under 'Business' > 'Financial diagnosis' > 'Assets'.",
+  "amortissements_generate_button": "📉 Generate depreciation schedule",
+  "amortissements_non_amortissable": "Not depreciable",
+  "amortissements_total_valeur_achat": "Total purchase value",
+  "amortissements_total_valeur_actuelle": "Total current value",
+  "amortissements_total_amortissement": "Total depreciation",
+  "amortissements_foncier_note": "ℹ️ Land is not depreciable under standard accounting rules — always shown as 'Not depreciable', regardless of any value entered."
 }
