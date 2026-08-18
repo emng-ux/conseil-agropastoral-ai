@@ -290,8 +290,8 @@ def page_collecte():
         render_identification_form(diagnostic, lang)
 
     from modules.entreprise import (render_histoire, render_environnement, render_parcelles,
-                                     render_calendrier, render_activites, render_diagnostic_financier,
-                                     render_bilan)
+                                     render_calendrier, render_activites, render_diagnostic_financier)
+    from modules.bilan import render_bilan
     with st.expander(_("entreprise_title"), expanded=False):
         ent_tabs = st.tabs([_("tab_histoire"), _("tab_environnement"), _("tab_parcelles"),
                             _("tab_calendrier"), _("tab_activites"), _("tab_diagnostic_financier"),

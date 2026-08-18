@@ -317,44 +317,6 @@ def render_diagnostic_financier(diagnostic: dict, lang: str):
     render_immobilisations(diagnostic, lang)
 
 
-def render_bilan(diagnostic: dict, lang: str):
-    ent = _entreprise(diagnostic)
-    bilan = ent.setdefault("bilan", {})
-    bilan["date_cloture"] = st.text_input(t("bilan_date_cloture", lang), value=bilan.get("date_cloture", ""))
-
-    st.markdown(f"**{t('bilan_actif', lang)}**")
-    actif = bilan.setdefault("actif", [])
-    for i, poste in enumerate(list(actif)):
-        cols = st.columns([3, 2, 1])
-        poste["libelle"] = cols[0].text_input(t("bilan_libelle", lang), value=poste.get("libelle", ""),
-                                               key=f"actif_lib_{i}")
-        poste["valeur"] = cols[1].number_input(t("bilan_valeur", lang), value=float(poste.get("valeur", 0.0)),
-                                                key=f"actif_val_{i}")
-        if cols[2].button(t("remove", lang), key=f"actif_rm_{i}"):
-            actif.pop(i)
-            st.rerun()
-    if st.button(t("bilan_add_actif", lang), key="ent_bilan_add_actif"):
-        actif.append({"libelle": "", "valeur": 0.0})
-        st.rerun()
-    total_actif = sum(float(p.get("valeur", 0) or 0) for p in actif)
-    st.metric(t("bilan_total_actif", lang), f"{total_actif:,.0f}")
-
-    st.markdown(f"**{t('bilan_passif', lang)}**")
-    passif = bilan.setdefault("passif", [])
-    for i, poste in enumerate(list(passif)):
-        cols = st.columns([3, 2, 1])
-        poste["libelle"] = cols[0].text_input(t("bilan_libelle", lang), value=poste.get("libelle", ""),
-                                               key=f"passif_lib_{i}")
-        poste["valeur"] = cols[1].number_input(t("bilan_valeur", lang), value=float(poste.get("valeur", 0.0)),
-                                                key=f"passif_val_{i}")
-        if cols[2].button(t("remove", lang), key=f"passif_rm_{i}"):
-            passif.pop(i)
-            st.rerun()
-    if st.button(t("bilan_add_passif", lang), key="ent_bilan_add_passif"):
-        passif.append({"libelle": "", "valeur": 0.0})
-        st.rerun()
-    total_passif = sum(float(p.get("valeur", 0) or 0) for p in passif)
-    st.metric(t("bilan_total_passif", lang), f"{total_passif:,.0f}")
-
-    if actif and passif and round(total_actif, 2) != round(total_passif, 2):
-        st.warning(t("bilan_desequilibre", lang).format(ecart=total_actif - total_passif))
+# La fonction render_bilan (bilan comptable structuré, FDR/BFR, tableau de
+# financement) a été déplacée dans modules/bilan.py pour plus de clarté,
+# vu son ampleur. Voir app.py : `from modules.bilan import render_bilan`.

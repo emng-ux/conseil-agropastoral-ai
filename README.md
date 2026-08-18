@@ -32,6 +32,7 @@ connexion Internet est disponible.
 - ✅ Agent conversationnel **multi-tours avec tool-calling réel** — actif si `ANTHROPIC_API_KEY` est configurée et une connexion est détectée. Il enregistre les informations mentionnées, relance sur les branches manquantes, et signale lui-même quand le diagnostic est prêt pour l'analyse
 - ✅ **Assistant de configuration de mot de passe intégré** : génère le secret à coller dans Streamlit Cloud, sans ligne de commande
 - ✅ Section Entreprise incluse dans les exports PDF/Word du diagnostic
+- ✅ **Bilan comptable structuré** (actif immobilisé/circulant, passif capitaux propres/dettes) sur deux exercices (début N-1, fin N), avec calcul automatique du **FDR**, du **BFR** et du **tableau de financement** (emplois/ressources)
 - ✅ **Installable comme PWA sur Android** (icône écran d'accueil, plein écran)
 - ✅ **Script d'installation Windows en 1 clic** (`install_windows.bat`)
 
@@ -144,7 +145,8 @@ modules/
   import_data.py           Import Excel/CSV + modèle
   import_word.py            Import Word à structure libre (extraction IA)
   identification.py         Village, localisation, contact, GPS (données sensibles, masquables)
-  entreprise.py              Histoire, environnement, parcelles, calendrier, activités, finances, bilan
+  entreprise.py              Histoire, environnement, parcelles, calendrier, activités, finances
+  bilan.py                    Bilan comptable structuré, FDR, BFR, tableau de financement
   analyse_pestel.py         Moteur PESTEL
   analyse_porter.py         Moteur 5 forces de Porter
   analyse_bcg.py             Moteur Matrice BCG

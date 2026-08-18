@@ -115,14 +115,20 @@ def _add_entreprise_section_word(doc, diagnostic: dict, lang: str):
                 style="List Bullet")
 
     bilan = ent.get("bilan", {})
-    if bilan.get("actif") or bilan.get("passif"):
-        doc.add_heading("Bilan" if lang == "fr" else "Balance sheet", level=2)
-        if bilan.get("date_cloture"):
-            doc.add_paragraph(f"{'Date de clôture' if lang == 'fr' else 'Closing date'}: {bilan['date_cloture']}")
-        total_actif = sum(float(p.get("valeur", 0) or 0) for p in bilan.get("actif", []))
-        total_passif = sum(float(p.get("valeur", 0) or 0) for p in bilan.get("passif", []))
-        doc.add_paragraph(f"{'Total actif' if lang == 'fr' else 'Total assets'}: {total_actif:,.0f} — "
-                           f"{'Total passif' if lang == 'fr' else 'Total liabilities'}: {total_passif:,.0f}")
+    if bilan.get("fin") and isinstance(bilan.get("fin"), dict) and "actif" in bilan.get("fin", {}):
+        from modules.bilan import compute_totals, compute_tableau_financement
+        totals_fin = compute_totals(bilan["fin"])
+        doc.add_heading("Bilan (fin d'exercice)" if lang == "fr" else "Balance sheet (year end)", level=2)
+        doc.add_paragraph(f"{'Total actif' if lang == 'fr' else 'Total assets'}: {totals_fin['total_actif']:,.0f} — "
+                           f"{'Total passif' if lang == 'fr' else 'Total liabilities'}: {totals_fin['total_passif']:,.0f}")
+        doc.add_paragraph(f"FDR: {totals_fin['fdr']:,.0f} | BFR: {totals_fin['bfr']:,.0f} | "
+                           f"{'Trésorerie' if lang == 'fr' else 'Cash'}: {totals_fin['tresorerie']:,.0f}")
+        if bilan.get("debut") and isinstance(bilan.get("debut"), dict) and "actif" in bilan.get("debut", {}):
+            tf = compute_tableau_financement(diagnostic)
+            doc.add_paragraph(
+                f"{'Variation FDR' if lang == 'fr' else 'FDR change'}: {tf['delta_fdr']:,.0f} | "
+                f"{'Variation BFR' if lang == 'fr' else 'BFR change'}: {tf['delta_bfr']:,.0f} | "
+                f"{'Variation trésorerie' if lang == 'fr' else 'Cash change'}: {tf['delta_tresorerie']:,.0f}")
 
 
 def _add_entreprise_section_pdf(pdf, diagnostic: dict, lang: str):
@@ -203,17 +209,22 @@ def _add_entreprise_section_pdf(pdf, diagnostic: dict, lang: str):
                      f"{im.get('valeur_actuelle', 0):,.0f}", height=6)
 
     bilan = ent.get("bilan", {})
-    if bilan.get("actif") or bilan.get("passif"):
+    if bilan.get("fin") and isinstance(bilan.get("fin"), dict) and "actif" in bilan.get("fin", {}):
+        from modules.bilan import compute_totals, compute_tableau_financement
+        totals_fin = compute_totals(bilan["fin"])
         pdf.set_font("Helvetica", "B", 12)
-        pdf.title_line("Bilan" if lang == "fr" else "Balance sheet")
+        pdf.title_line("Bilan (fin d'exercice)" if lang == "fr" else "Balance sheet (year end)")
         pdf.set_font("Helvetica", size=10)
-        if bilan.get("date_cloture"):
-            pdf.line(f"- {'Date de cloture' if lang == 'fr' else 'Closing date'}: {bilan['date_cloture']}", height=6)
-        total_actif = sum(float(p.get("valeur", 0) or 0) for p in bilan.get("actif", []))
-        total_passif = sum(float(p.get("valeur", 0) or 0) for p in bilan.get("passif", []))
-        pdf.line(f"- Total actif: {total_actif:,.0f} | Total passif: {total_passif:,.0f}"
+        pdf.line(f"- Total actif: {totals_fin['total_actif']:,.0f} | Total passif: {totals_fin['total_passif']:,.0f}"
                  if lang == "fr" else
-                 f"- Total assets: {total_actif:,.0f} | Total liabilities: {total_passif:,.0f}", height=6)
+                 f"- Total assets: {totals_fin['total_actif']:,.0f} | "
+                 f"Total liabilities: {totals_fin['total_passif']:,.0f}", height=6)
+        pdf.line(f"- FDR: {totals_fin['fdr']:,.0f} | BFR: {totals_fin['bfr']:,.0f} | "
+                 f"Tresorerie: {totals_fin['tresorerie']:,.0f}", height=6)
+        if bilan.get("debut") and isinstance(bilan.get("debut"), dict) and "actif" in bilan.get("debut", {}):
+            tf = compute_tableau_financement(diagnostic)
+            pdf.line(f"- Variation FDR: {tf['delta_fdr']:,.0f} | Variation BFR: {tf['delta_bfr']:,.0f} | "
+                     f"Variation tresorerie: {tf['delta_tresorerie']:,.0f}", height=6)
     pdf.ln(2)
 
 
