@@ -181,11 +181,27 @@ def render_calendrier(diagnostic: dict, lang: str):
 # performances technico-économiques, avec calcul automatique des marges)
 # ---------------------------------------------------------------------------
 def compute_marge_brute(act: dict) -> float:
+    """Marge brute de l'activité, hors coût de la main d'œuvre (propre) et hors
+    coût du travail par entreprise/tiers — ces deux coûts sont saisis
+    séparément et jamais inclus dans les charges opérationnelles."""
     return float(act.get("produit_brut", 0) or 0) - float(act.get("charges_operationnelles", 0) or 0)
 
 
 def compute_marge_directe(act: dict) -> float:
     return float(act.get("produit_brut", 0) or 0) - float(act.get("charges_directes", 0) or 0)
+
+
+def compute_valeur_ajoutee(act: dict) -> float:
+    """Valeur ajoutée de l'activité = Produits - Charges opérationnelles -
+    Coût du travail par entreprise/tiers (consommation intermédiaire externe).
+    Le coût de la main d'œuvre PROPRE n'est volontairement PAS déduit : il
+    s'agit d'une rémunération financée par la valeur ajoutée, pas d'une
+    consommation intermédiaire — logique standard de l'analyse économique
+    agricole (conseil de gestion)."""
+    produit_brut = float(act.get("produit_brut", 0) or 0)
+    charges_operationnelles = float(act.get("charges_operationnelles", 0) or 0)
+    cout_travail_tiers = float(act.get("cout_travail_tiers", 0) or 0)
+    return produit_brut - charges_operationnelles - cout_travail_tiers
 
 
 def render_activites(diagnostic: dict, lang: str):
@@ -268,12 +284,22 @@ def render_activites(diagnostic: dict, lang: str):
             act["charges_directes"] = mcol2.number_input(
                 t("activite_charges_directes", lang), min_value=0.0,
                 value=float(act.get("charges_directes", 0.0)), key=f"act_cd_{i}")
+            act["cout_main_oeuvre"] = mcol1.number_input(
+                t("activite_cout_mo", lang), min_value=0.0,
+                value=float(act.get("cout_main_oeuvre", 0.0)), help=t("activite_cout_mo_help", lang),
+                key=f"act_cmo_{i}")
+            act["cout_travail_tiers"] = mcol2.number_input(
+                t("activite_cout_tiers", lang), min_value=0.0,
+                value=float(act.get("cout_travail_tiers", 0.0)), help=t("activite_cout_tiers_help", lang),
+                key=f"act_ctiers_{i}")
 
             marge_brute = compute_marge_brute(act)
             marge_directe = compute_marge_directe(act)
-            r1, r2 = st.columns(2)
+            valeur_ajoutee = compute_valeur_ajoutee(act)
+            r1, r2, r3 = st.columns(3)
             r1.metric(t("activite_marge_brute", lang), f"{marge_brute:,.0f}")
             r2.metric(t("activite_marge_directe", lang), f"{marge_directe:,.0f}")
+            r3.metric(t("activite_valeur_ajoutee", lang), f"{valeur_ajoutee:,.0f}")
 
             st.markdown(f"**{t('activite_analyse', lang)}**")
             act["points_forts"] = st.text_area(t("activite_points_forts", lang),
@@ -335,6 +361,7 @@ def compute_diagnostic_financier(diagnostic: dict) -> dict:
     ent = diagnostic.get("entreprise", {})
     activites = ent.get("activites", [])
     marge_brute_globale = sum(compute_marge_brute(a) for a in activites)
+    valeur_ajoutee_globale = sum(compute_valeur_ajoutee(a) for a in activites)
     df = ent.setdefault("diagnostic_financier", {})
     charges_structure = float(df.get("charges_structure", 0) or 0)
     annuites = float(df.get("annuites_remboursement", 0) or 0)
@@ -342,6 +369,7 @@ def compute_diagnostic_financier(diagnostic: dict) -> dict:
     marge_securite = ebe - annuites
     return {
         "marge_brute_globale": marge_brute_globale,
+        "valeur_ajoutee_globale": valeur_ajoutee_globale,
         "charges_structure": charges_structure,
         "ebe": ebe,
         "annuites_remboursement": annuites,
@@ -368,6 +396,7 @@ def render_diagnostic_financier(diagnostic: dict, lang: str):
     r1.metric(t("diag_fin_marge_brute_globale", lang), f"{results['marge_brute_globale']:,.0f}")
     r2.metric(t("diag_fin_ebe", lang), f"{results['ebe']:,.0f}")
     r3.metric(t("diag_fin_marge_securite", lang), f"{results['marge_securite']:,.0f}")
+    st.metric(t("diag_fin_valeur_ajoutee_globale", lang), f"{results['valeur_ajoutee_globale']:,.0f}")
 
     render_immobilisations(diagnostic, lang)
 

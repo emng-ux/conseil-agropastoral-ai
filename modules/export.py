@@ -39,7 +39,8 @@ def _add_entreprise_section_word(doc, diagnostic: dict, lang: str):
     calendrier, activités avec marges, diagnostic financier, immobilisations,
     bilan) au document Word. Données non identifiantes : toujours incluses,
     indépendamment du masquage du nom/contact."""
-    from modules.entreprise import compute_marge_brute, compute_marge_directe, compute_diagnostic_financier
+    from modules.entreprise import (compute_marge_brute, compute_marge_directe, compute_valeur_ajoutee,
+                                     compute_diagnostic_financier)
 
     ent = diagnostic.get("entreprise", {})
     if not ent:
@@ -84,10 +85,11 @@ def _add_entreprise_section_word(doc, diagnostic: dict, lang: str):
         doc.add_heading("Description des activités" if lang == "fr" else "Activity description", level=2)
         for a in activites:
             doc.add_heading(a.get("nom", "") or "-", level=3)
-            mb, md = compute_marge_brute(a), compute_marge_directe(a)
+            mb, md, va = compute_marge_brute(a), compute_marge_directe(a), compute_valeur_ajoutee(a)
             doc.add_paragraph(
                 f"{'Marge brute' if lang == 'fr' else 'Gross margin'}: {mb:,.0f} | "
-                f"{'Marge directe' if lang == 'fr' else 'Direct margin'}: {md:,.0f}")
+                f"{'Marge directe' if lang == 'fr' else 'Direct margin'}: {md:,.0f} | "
+                f"{'Valeur ajoutée' if lang == 'fr' else 'Value added'}: {va:,.0f}")
             if a.get("finalites_objectifs"):
                 doc.add_paragraph(a["finalites_objectifs"])
             if a.get("points_forts"):
@@ -133,7 +135,8 @@ def _add_entreprise_section_word(doc, diagnostic: dict, lang: str):
 
 def _add_entreprise_section_pdf(pdf, diagnostic: dict, lang: str):
     """Équivalent PDF de _add_entreprise_section_word."""
-    from modules.entreprise import compute_marge_brute, compute_marge_directe, compute_diagnostic_financier
+    from modules.entreprise import (compute_marge_brute, compute_marge_directe, compute_valeur_ajoutee,
+                                     compute_diagnostic_financier)
 
     ent = diagnostic.get("entreprise", {})
     if not ent:
@@ -184,10 +187,12 @@ def _add_entreprise_section_pdf(pdf, diagnostic: dict, lang: str):
         pdf.title_line("Description des activites" if lang == "fr" else "Activity description")
         pdf.set_font("Helvetica", size=10)
         for a in activites:
-            mb, md = compute_marge_brute(a), compute_marge_directe(a)
-            pdf.line(f"- {a.get('nom', '') or '-'} : marge brute {mb:,.0f} / marge directe {md:,.0f}"
+            mb, md, va = compute_marge_brute(a), compute_marge_directe(a), compute_valeur_ajoutee(a)
+            pdf.line(f"- {a.get('nom', '') or '-'} : marge brute {mb:,.0f} / marge directe {md:,.0f} / "
+                     f"valeur ajoutee {va:,.0f}"
                      if lang == "fr" else
-                     f"- {a.get('nom', '') or '-'}: gross margin {mb:,.0f} / direct margin {md:,.0f}", height=6)
+                     f"- {a.get('nom', '') or '-'}: gross margin {mb:,.0f} / direct margin {md:,.0f} / "
+                     f"value added {va:,.0f}", height=6)
 
     if ent.get("diagnostic_financier") or activites:
         results = compute_diagnostic_financier(diagnostic)

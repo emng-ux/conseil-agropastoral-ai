@@ -19,7 +19,7 @@ connexion Internet est disponible.
 
 - ✅ Formulaire guidé multi-branches (étoile du conseil), visualisation radar de complétude
 - ✅ Section **Identification & localisation** : village, arrondissement, département, région, pays, code administratif, année, GPS, contact (adresse/téléphone/email) — contact masquable comme le nom
-- ✅ Section **Entreprise** : histoire, environnement externe, plan de localisation (parcelles), calendrier annuel des activités, description détaillée de chaque activité (avec calcul automatique de la marge brute et de la marge directe), diagnostic économique et financier global (marge brute globale, EBE, marge de sécurité — calculés automatiquement), tableau des immobilisations, bilan (actif/passif)
+- ✅ Section **Entreprise** : histoire, environnement externe, plan de localisation (parcelles), calendrier annuel des activités, description détaillée de chaque activité (avec calcul automatique de la marge brute, de la marge directe et de la **valeur ajoutée** — la marge brute exclut systématiquement le coût de la main d'œuvre et le coût du travail par tiers), diagnostic économique et financier global (marge brute globale, valeur ajoutée globale, EBE, marge de sécurité — calculés automatiquement), tableau des immobilisations, bilan (actif/passif)
 - ✅ Import de diagnostics existants (Excel/CSV, modèle strict) + modèle téléchargeable
 - ✅ Import de diagnostics **Word à structure libre** (une ou plusieurs parties), extraction assistée par IA vers l'étoile du conseil et le SWOT, toujours relu avant sauvegarde
 - ✅ 5 moteurs d'analyse stratégique 100% locaux (PESTEL, Porter, BCG, Ansoff, **SWOT/FFOM**)
