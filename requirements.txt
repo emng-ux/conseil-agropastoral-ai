@@ -10,3 +10,6 @@ anthropic>=0.34
 
 # Dépendance pour la persistance des données en ligne (Supabase) :
 requests>=2.31
+
+# Dépendance pour le rafraîchissement quasi-temps réel de la messagerie :
+streamlit-autorefresh>=1.0

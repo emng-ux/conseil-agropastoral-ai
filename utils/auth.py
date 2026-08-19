@@ -1,19 +1,12 @@
-"""Authentification simple par nom d'utilisateur / mot de passe, pour protéger
-l'accès à l'app en ligne (Streamlit Cloud). Les comptes autorisés sont définis
-dans les secrets Streamlit sous une section [auth_users], sous la forme :
+"""Authentification par nom d'utilisateur / mot de passe, avec deux modes :
 
-    [auth_users]
-    emmanuel = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
-    conseiller2 = "..."
-
-Chaque valeur est le hash SHA-256 du mot de passe (jamais le mot de passe en
-clair). Pour générer un hash à partir d'un mot de passe, exécuter en local :
-
-    python -c "import hashlib; print(hashlib.sha256('votre_mot_de_passe'.encode()).hexdigest())"
-
-Si aucun compte n'est configuré (ex. usage local sans secrets.toml), l'accès
-reste ouvert — c'est le comportement attendu pour un usage local/hors-ligne
-individuel, où l'authentification n'a pas de sens.
+- Mode hiérarchique (Supabase configuré) : les comptes sont gérés dans la
+  table `users` (National/Régional/Départemental, admin, conseiller...) via
+  utils.hierarchy — voir ce module pour la logique de rôles et de visibilité.
+- Mode simple (pas de Supabase, usage local individuel) : ancien système par
+  liste plate dans les secrets Streamlit [auth_users], sans hiérarchie —
+  suffisant pour un usage hors-ligne individuel où la hiérarchie n'a pas de
+  sens (un seul utilisateur).
 """
 import hashlib
 
@@ -32,6 +25,9 @@ def _get_configured_users() -> dict:
 
 
 def auth_configured() -> bool:
+    from utils.hierarchy import hierarchical_accounts_available
+    if hierarchical_accounts_available():
+        return True
     return bool(_get_configured_users())
 
 
@@ -43,6 +39,38 @@ def require_login(title: str, username_label: str, password_label: str,
     if st.session_state.get("authenticated"):
         return True
 
+    from utils.hierarchy import hierarchical_accounts_available, authenticate
+
+    if hierarchical_accounts_available():
+        st.title(title)
+        with st.form("login_form"):
+            username = st.text_input(username_label)
+            password = st.text_input(password_label, type="password")
+            submitted = st.form_submit_button(submit_label)
+
+        if submitted:
+            connection_failed = False
+            try:
+                account = authenticate(username, password)
+            except Exception:
+                connection_failed = True
+                account = {}
+            if account:
+                st.session_state.authenticated = True
+                st.session_state.current_user = username
+                st.session_state.current_account = account
+                from utils.activity_log import log_action
+                log_action(username, "connexion", "")
+                st.rerun()
+            elif connection_failed:
+                st.error("⚠️ Connexion à la base de comptes impossible pour le moment. "
+                         "Réessaie dans un instant. / Unable to reach the accounts database "
+                         "right now. Please try again shortly.")
+            else:
+                st.error(error_label)
+        return False
+
+    # --- Mode simple (pas de Supabase) : ancien système ---
     users = _get_configured_users()
     if not users:
         return True  # pas d'authentification configurée : usage local, accès ouvert
@@ -58,6 +86,8 @@ def require_login(title: str, username_label: str, password_label: str,
         if expected_hash and _hash_password(password) == expected_hash:
             st.session_state.authenticated = True
             st.session_state.current_user = username
+            st.session_state.current_account = {"username": username, "niveau": None,
+                                                  "is_admin": False, "is_conseiller": True}
             st.rerun()
         else:
             st.error(error_label)
@@ -68,3 +98,4 @@ def require_login(title: str, username_label: str, password_label: str,
 def logout():
     st.session_state.authenticated = False
     st.session_state.pop("current_user", None)
+    st.session_state.pop("current_account", None)

@@ -38,6 +38,7 @@ connexion Internet est disponible.
 - ✅ **Schéma visuel auto-généré** (SVG, sur bouton "Générer") de l'EFA/OP : siège, bâtiments d'exploitation, éléments du paysage, parcelles (avec zonage et mise en valeur) et activités avec leurs flux entrants/sortants — gestion multi-sites (plan général + plan détaillé par site)
 - ✅ **Tableau des amortissements** (sur bouton, sous l'onglet Moyens de production) généré à partir des immobilisations saisies — le foncier n'est jamais amorti, conformément à la règle comptable
 - ✅ **Plan de financement** (Ressources R1-R5 / Emplois E1-E5) avec calcul automatique de 10 indicateurs (taux d'autofinancement, taux de financement externe, capacité de remboursement, etc.) et **qualification automatique** de la situation financière (autonomie forte, dépendance externe, tension de trésorerie, BFR excessif...)
+- ✅ **Comptes hiérarchiques** (National / Régional / Départemental) avec cloisonnement automatique des données par périmètre, **panneau d'administration** (création de comptes, suivi des coûts API, journal d'activité), **messagerie bidirectionnelle** entre niveaux, et photo de profil
 - ✅ **Installable comme PWA sur Android** (icône écran d'accueil, plein écran)
 - ✅ **Script d'installation Windows en 1 clic** (`install_windows.bat`)
 
@@ -85,9 +86,55 @@ diagnostics créés sur la version en ligne peuvent être perdus au redémarrage
      data jsonb not null,
      updated_at timestamptz not null default now()
    );
+
+   -- Comptes hiérarchiques (National / Régional / Départemental) + admin
+   create table users (
+     username text primary key,
+     password_hash text not null,
+     nom_complet text,
+     fonction text,
+     niveau text,               -- 'national' | 'regional' | 'departemental'
+     region text,
+     departement text,
+     is_admin boolean default false,
+     is_conseiller boolean default false,
+     actif boolean default true,
+     photo_base64 text
+   );
+
+   -- Messagerie bidirectionnelle
+   create table messages (
+     id bigint generated always as identity primary key,
+     sender text not null,
+     recipient text not null,   -- identifiant précis, ou 'TOUS' pour une diffusion
+     body text not null,
+     created_at timestamptz not null default now()
+   );
+
+   -- Journal d'activité (traçabilité)
+   create table activity_log (
+     id bigint generated always as identity primary key,
+     username text,
+     action text,
+     details text,
+     created_at timestamptz not null default now()
+   );
    ```
 3. Dans Project Settings → API, récupère l'URL du projet et la clé **service_role**
    (jamais la clé `anon` publique — la `service_role` doit rester strictement secrète).
+
+### 1bis. Créer le tout premier compte administrateur
+
+Une fois les tables créées, ajoute directement une ligne dans `users` via l'éditeur
+de table Supabase (onglet "Table Editor" → `users` → "Insert row") :
+- `username` : ton identifiant
+- `password_hash` : génère-le avec `python -c "import hashlib; print(hashlib.sha256('ton_mot_de_passe'.encode()).hexdigest())"`
+- `niveau` : `national`
+- `is_admin` : `true`
+- `actif` : `true`
+
+Ce premier compte pourra ensuite créer tous les autres depuis le panneau
+"⚙️ Administration" de l'application.
 
 ### 2. Configurer les secrets (Streamlit Cloud ou local)
 

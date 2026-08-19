@@ -323,5 +323,18 @@
   "amortissements_total_valeur_achat": "Total valeur d'achat",
   "amortissements_total_valeur_actuelle": "Total valeur actuelle",
   "amortissements_total_amortissement": "Total amortissement",
-  "amortissements_foncier_note": "ℹ️ Le foncier (terrains) ne s'amortit pas comptablement — toujours affiché comme 'Non amortissable', quelle que soit la valeur éventuellement saisie."
+  "amortissements_foncier_note": "ℹ️ Le foncier (terrains) ne s'amortit pas comptablement — toujours affiché comme 'Non amortissable', quelle que soit la valeur éventuellement saisie.",
+  "nav_messagerie": "💬 Messagerie",
+  "nav_administration": "⚙️ Administration",
+  "access_denied": "Accès réservé aux administrateurs.",
+  "profile_photo_title": "🖼️ Photo de profil",
+  "profile_photo_upload": "Choisir une image",
+  "profile_photo_save": "Enregistrer",
+  "profile_photo_needs_hierarchy": "La photo de profil nécessite les comptes hiérarchiques (Supabase configuré).",
+  "messagerie_manual_refresh_hint": "Recharge la page pour voir les nouveaux messages (rafraîchissement automatique non disponible).",
+  "messagerie_tous": "📢 Tous (diffusion à mon périmètre)",
+  "messagerie_destinataire": "Destinataire",
+  "messagerie_message": "Message",
+  "messagerie_envoyer": "Envoyer",
+  "messagerie_aucun_message": "Aucun message pour l'instant."
 }

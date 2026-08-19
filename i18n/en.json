@@ -323,5 +323,18 @@
   "amortissements_total_valeur_achat": "Total purchase value",
   "amortissements_total_valeur_actuelle": "Total current value",
   "amortissements_total_amortissement": "Total depreciation",
-  "amortissements_foncier_note": "ℹ️ Land is not depreciable under standard accounting rules — always shown as 'Not depreciable', regardless of any value entered."
+  "amortissements_foncier_note": "ℹ️ Land is not depreciable under standard accounting rules — always shown as 'Not depreciable', regardless of any value entered.",
+  "nav_messagerie": "💬 Messaging",
+  "nav_administration": "⚙️ Administration",
+  "access_denied": "Access restricted to administrators.",
+  "profile_photo_title": "🖼️ Profile photo",
+  "profile_photo_upload": "Choose an image",
+  "profile_photo_save": "Save",
+  "profile_photo_needs_hierarchy": "Profile photos require hierarchical accounts (Supabase configured).",
+  "messagerie_manual_refresh_hint": "Reload the page to see new messages (auto-refresh unavailable).",
+  "messagerie_tous": "📢 All (broadcast to my scope)",
+  "messagerie_destinataire": "Recipient",
+  "messagerie_message": "Message",
+  "messagerie_envoyer": "Send",
+  "messagerie_aucun_message": "No messages yet."
 }

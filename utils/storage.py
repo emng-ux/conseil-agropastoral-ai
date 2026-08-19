@@ -160,6 +160,7 @@ def _summarize(diagnostic_id: str, data: dict) -> dict:
         "nom": data.get("nom", "(sans nom)"),
         "type": data.get("type", ""),
         "conseiller": data.get("conseiller", ""),
+        "owner_username": data.get("owner_username", ""),
         "updated_at": data.get("updated_at", ""),
         "validated": bool(data.get("validation")),
     }
@@ -187,10 +188,17 @@ def delete_diagnostic(diagnostic_id: str) -> None:
         _local_delete(diagnostic_id)
 
 
-def list_diagnostics() -> list:
-    """Retourne la liste des diagnostics triés du plus récent au plus ancien."""
+def list_diagnostics(visible_owners: set = None) -> list:
+    """Retourne la liste des diagnostics triés du plus récent au plus ancien.
+    Si `visible_owners` est fourni (ensemble d'identifiants), ne retourne que
+    les diagnostics dont le propriétaire (owner_username) y figure — utilisé
+    pour le cloisonnement hiérarchique des données entre comptes. Les
+    diagnostics anciens sans owner_username restent visibles par tous (pas de
+    régression sur les données créées avant l'introduction des comptes)."""
     items = _supabase_list() if _supabase_configured() else _local_list()
     items.sort(key=lambda x: x["updated_at"], reverse=True)
+    if visible_owners is not None:
+        items = [it for it in items if not it.get("owner_username") or it["owner_username"] in visible_owners]
     return items
 
 

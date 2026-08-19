@@ -223,8 +223,36 @@ with st.sidebar:
     st.markdown(_("online_status_online") if st.session_state.online else _("online_status_offline"))
     from utils.storage import storage_backend_name
     st.caption(f"💾 {storage_backend_name()}")
+
     if st.session_state.get("current_user"):
-        st.caption(f"👤 {st.session_state['current_user']}")
+        current_account = st.session_state.get("current_account", {})
+        photo_b64 = current_account.get("photo_base64")
+        if photo_b64:
+            import base64 as _b64
+            st.image(_b64.b64decode(photo_b64), width=64)
+        st.caption(f"👤 {current_account.get('nom_complet') or st.session_state['current_user']}")
+        if current_account.get("fonction"):
+            st.caption(f"🏷️ {current_account['fonction']}")
+        perimetre_bits = [b for b in [current_account.get("niveau"), current_account.get("region"),
+                                       current_account.get("departement")] if b]
+        if perimetre_bits:
+            st.caption("📍 " + " — ".join(perimetre_bits))
+
+        with st.expander(_("profile_photo_title")):
+            photo_file = st.file_uploader(_("profile_photo_upload"), type=["png", "jpg", "jpeg"],
+                                           key="profile_photo_uploader")
+            if photo_file is not None and st.button(_("profile_photo_save"), key="profile_photo_save_btn"):
+                import base64 as _b64
+                from utils.hierarchy import set_photo, hierarchical_accounts_available
+                if hierarchical_accounts_available():
+                    encoded = _b64.b64encode(photo_file.getvalue()).decode("utf-8")
+                    set_photo(st.session_state["current_user"], encoded)
+                    st.session_state["current_account"]["photo_base64"] = encoded
+                    st.success("✅")
+                    st.rerun()
+                else:
+                    st.info(_("profile_photo_needs_hierarchy"))
+
         if st.button(_("logout_button"), use_container_width=True):
             logout()
             st.rerun()
@@ -258,6 +286,13 @@ with st.sidebar:
         "plan": _("nav_plan"),
         "historique": _("nav_historique"),
     }
+    _current_account_nav = st.session_state.get("current_account", {})
+    from utils.hierarchy import hierarchical_accounts_available
+    if hierarchical_accounts_available() and st.session_state.get("current_user"):
+        page_labels["messagerie"] = _("nav_messagerie")
+        if _current_account_nav.get("is_admin"):
+            page_labels["administration"] = _("nav_administration")
+
     for key, label in page_labels.items():
         if st.button(label, use_container_width=True,
                      type="primary" if st.session_state.page == key else "secondary"):
@@ -274,13 +309,29 @@ def _ensure_diagnostic():
 # ---------------------------------------------------------------------------
 # Page : Tableau de bord
 # ---------------------------------------------------------------------------
+def _get_visible_owners():
+    """Calcule l'ensemble des identifiants de diagnostics visibles par
+    l'utilisateur connecté, selon son périmètre hiérarchique. Retourne None
+    si la hiérarchie n'est pas active (mode simple/local) ou si la base de
+    comptes est temporairement injoignable : dans ce cas, aucun filtrage
+    n'est appliqué plutôt que de faire planter le tableau de bord."""
+    from utils.hierarchy import hierarchical_accounts_available, list_all_accounts, visible_usernames
+    if not hierarchical_accounts_available() or not st.session_state.get("current_account"):
+        return None
+    try:
+        all_accounts = list_all_accounts()
+        return visible_usernames(st.session_state["current_account"], all_accounts)
+    except Exception:
+        return None
+
+
 def page_dashboard():
     st.title(_("nav_dashboard"))
 
     col1, col2 = st.columns([2, 1])
     with col1:
         st.subheader(_("existing_diagnostics"))
-        diagnostics = list_diagnostics()
+        diagnostics = list_diagnostics(visible_owners=_get_visible_owners())
         if not diagnostics:
             st.info(_("no_diagnostics"))
         for d in diagnostics:
@@ -308,8 +359,12 @@ def page_dashboard():
             submitted = st.form_submit_button(_("create"))
             if submitted and nom:
                 diagnostic_id = new_diagnostic_id()
-                diagnostic = {"nom": nom, "type": type_structure, "conseiller": conseiller, "etoile": {}}
+                diagnostic = {"nom": nom, "type": type_structure, "conseiller": conseiller, "etoile": {},
+                              "owner_username": st.session_state.get("current_user", "")}
                 save_diagnostic(diagnostic_id, diagnostic)
+                from utils.activity_log import log_action
+                log_action(st.session_state.get("current_user", ""), "creation_diagnostic",
+                           f"Diagnostic créé : {nom}")
                 st.session_state.current_diagnostic_id = diagnostic_id
                 st.session_state.current_diagnostic = diagnostic
                 st.session_state.page = "collecte"
@@ -732,7 +787,7 @@ def page_plan():
 # ---------------------------------------------------------------------------
 def page_historique():
     st.title(_("nav_historique"))
-    diagnostics = list_diagnostics()
+    diagnostics = list_diagnostics(visible_owners=_get_visible_owners())
     if not diagnostics:
         st.info(_("no_diagnostics"))
         return
@@ -744,6 +799,55 @@ def page_historique():
                         f"{status} — {_('branch_completion')}: {d['updated_at']}")
 
 
+def page_administration():
+    if not st.session_state.get("current_account", {}).get("is_admin"):
+        st.error(_("access_denied"))
+        return
+    from modules.admin import render_admin_panel
+    render_admin_panel(lang, st.session_state.get("current_user", ""))
+
+
+def page_messagerie():
+    from utils.hierarchy import list_all_accounts, visible_usernames
+    from modules.messaging import send_message, list_messages_for, BROADCAST
+
+    st.title(_("nav_messagerie"))
+
+    # Rafraîchissement automatique périodique pour un effet quasi-temps réel.
+    try:
+        from streamlit_autorefresh import st_autorefresh
+        st_autorefresh(interval=20000, key="messagerie_autorefresh")
+    except ImportError:
+        st.caption(_("messagerie_manual_refresh_hint"))
+
+    current_user = st.session_state.get("current_user", "")
+    current_account = st.session_state.get("current_account", {})
+    all_accounts = list_all_accounts()
+    my_scope = visible_usernames(current_account, all_accounts) - {current_user}
+
+    with st.form("send_message_form", clear_on_submit=True):
+        options = [BROADCAST] + sorted(my_scope)
+        labels = {BROADCAST: _("messagerie_tous")}
+        recipient = st.selectbox(_("messagerie_destinataire"), options,
+                                  format_func=lambda x: labels.get(x, x))
+        body = st.text_area(_("messagerie_message"))
+        if st.form_submit_button(_("messagerie_envoyer")) and body.strip():
+            send_message(current_user, recipient, body.strip())
+            from utils.activity_log import log_action
+            log_action(current_user, "message_envoye", f"À : {recipient}")
+            st.rerun()
+
+    st.markdown("---")
+    messages = list_messages_for(current_user, current_account=current_account, all_accounts=all_accounts)
+    if not messages:
+        st.info(_("messagerie_aucun_message"))
+    for m in reversed(messages):
+        with st.container(border=True):
+            dest = _("messagerie_tous") if m["recipient"] == BROADCAST else m["recipient"]
+            st.caption(f"**{m['sender']}** → {dest} — `{m['created_at'][:16]}`")
+            st.markdown(m["body"])
+
+
 # ---------------------------------------------------------------------------
 # Routage
 # ---------------------------------------------------------------------------
@@ -753,5 +857,7 @@ pages = {
     "analyse": page_analyse,
     "plan": page_plan,
     "historique": page_historique,
+    "administration": page_administration,
+    "messagerie": page_messagerie,
 }
 pages[st.session_state.page]()
