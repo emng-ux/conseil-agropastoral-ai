@@ -142,6 +142,20 @@ def extract_diagnostic_from_text(text: str, lang: str = "fr") -> dict:
     raise RuntimeError("L'extraction n'a renvoyé aucun résultat exploitable.")
 
 
+def _sanitize_etoile(raw_etoile) -> dict:
+    """Garantit une structure etoile propre : un dict, dont chaque branche est
+    elle-même un dict. Neutralise silencieusement toute forme inattendue
+    renvoyée par l'extraction IA (liste, chaîne, None...) plutôt que de
+    laisser une donnée malformée se propager et faire planter l'affichage
+    plus tard."""
+    if not isinstance(raw_etoile, dict):
+        return {}
+    clean = {}
+    for branch_key, branch_value in raw_etoile.items():
+        clean[branch_key] = branch_value if isinstance(branch_value, dict) else {}
+    return clean
+
+
 def build_diagnostic_from_extraction(extraction: dict, nom: str, type_structure: str,
                                       conseiller: str) -> dict:
     """Construit un diagnostic complet à partir du résultat d'extraction, prêt à
@@ -150,9 +164,9 @@ def build_diagnostic_from_extraction(extraction: dict, nom: str, type_structure:
         "nom": nom,
         "type": type_structure,
         "conseiller": conseiller,
-        "etoile": extraction.get("etoile") or {},
+        "etoile": _sanitize_etoile(extraction.get("etoile")),
     }
     swot = extraction.get("swot")
-    if swot and any(swot.get(k) for k in ("forces", "faiblesses", "opportunites", "menaces")):
+    if isinstance(swot, dict) and any(swot.get(k) for k in ("forces", "faiblesses", "opportunites", "menaces")):
         diagnostic["swot_import"] = swot
     return diagnostic
