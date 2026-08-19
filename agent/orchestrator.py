@@ -85,7 +85,7 @@ def _system_prompt(diagnostic: dict, lang: str) -> str:
               "fields": _branch_field_ids(branch)}
         for key, branch in schema.items()
     }
-    etat_actuel = diagnostic.get("etoile", {})
+    etat_actuel = diagnostic.get("etoile") or {}
 
     return (
         "Tu es un agent IA qui aide un conseiller agropastoral à mener un entretien "

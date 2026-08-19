@@ -144,7 +144,7 @@ def _sum_group(container: dict, key: str) -> float:
 
 
 def compute_plan_financement(diagnostic: dict) -> dict:
-    pf = diagnostic.get("entreprise", {}).get("plan_financement", {})
+    pf = (diagnostic.get("entreprise") or {}).get("plan_financement", {})
     ressources = pf.get("ressources", {})
     emplois = pf.get("emplois", {})
 

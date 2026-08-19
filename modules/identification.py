@@ -65,7 +65,7 @@ def render_identification_form(diagnostic: dict, lang: str) -> dict:
 def identification_completion_ratio(diagnostic: dict) -> float:
     """Estime le taux de remplissage de la section identification (hors GPS/contact,
     facultatifs par nature)."""
-    ident = diagnostic.get("identification", {})
+    ident = (diagnostic.get("identification") or {})
     fields = ["village", "arrondissement", "departement", "region", "pays", "annee"]
     filled = sum(1 for f in fields if ident.get(f))
     return round(filled / len(fields), 2)
@@ -75,7 +75,7 @@ def contact_is_visible(diagnostic: dict) -> bool:
     """Le contact n'est visible que si le mode 'Afficher les noms' est actif ET
     que le conseiller n'a pas explicitement demandé un masquage permanent pour
     ce diagnostic précis."""
-    contact = diagnostic.get("identification", {}).get("contact", {})
+    contact = (diagnostic.get("identification") or {}).get("contact", {})
     if contact.get("toujours_masquer"):
         return False
     return bool(st.session_state.get("reveal_names"))

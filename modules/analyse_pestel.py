@@ -12,7 +12,7 @@ PESTEL_LABELS = {
 
 
 def compute_pestel(diagnostic: dict, lang: str = "fr") -> dict:
-    etoile = diagnostic.get("etoile", {})
+    etoile = diagnostic.get("etoile") or {}
     milieu = etoile.get("milieu_local", {})
     politiques = etoile.get("politiques_publiques", {})
     finances = etoile.get("finances", {})

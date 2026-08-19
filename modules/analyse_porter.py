@@ -12,7 +12,7 @@ def _level_label(level: str, lang: str) -> str:
 
 
 def compute_porter(diagnostic: dict, lang: str = "fr") -> dict:
-    marche = diagnostic.get("etoile", {}).get("marche", {})
+    marche = (diagnostic.get("etoile") or {}).get("marche", {})
 
     # Intensité concurrentielle
     concurrents = marche.get("nombre_concurrents", "")
@@ -34,7 +34,7 @@ def compute_porter(diagnostic: dict, lang: str = "fr") -> dict:
     produits_substitution = "moyen"
 
     # Pouvoir de négociation des fournisseurs (intrants) : approximé via accès aux intrants
-    acces_intrants = diagnostic.get("etoile", {}).get("moyens_production", {}).get("acces_intrants", "")
+    acces_intrants = (diagnostic.get("etoile") or {}).get("moyens_production", {}).get("acces_intrants", "")
     pouvoir_fournisseurs = {"Facile": "faible", "Easy": "faible",
                              "Moyen": "moyen", "Moderate": "moyen",
                              "Difficile": "fort", "Difficult": "fort"}.get(acces_intrants, "moyen")

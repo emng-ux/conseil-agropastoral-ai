@@ -150,7 +150,7 @@ def build_diagnostic_from_extraction(extraction: dict, nom: str, type_structure:
         "nom": nom,
         "type": type_structure,
         "conseiller": conseiller,
-        "etoile": extraction.get("etoile", {}),
+        "etoile": extraction.get("etoile") or {},
     }
     swot = extraction.get("swot")
     if swot and any(swot.get(k) for k in ("forces", "faiblesses", "opportunites", "menaces")):

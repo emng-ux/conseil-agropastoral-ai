@@ -25,7 +25,7 @@ def _classify(part_marche: float, croissance: float) -> str:
 
 
 def compute_bcg(diagnostic: dict, lang: str = "fr") -> list:
-    activites = diagnostic.get("etoile", {}).get("marche", {}).get("activites", [])
+    activites = (diagnostic.get("etoile") or {}).get("marche", {}).get("activites", [])
     result = []
     for act in activites:
         nom = act.get("nom", "").strip()

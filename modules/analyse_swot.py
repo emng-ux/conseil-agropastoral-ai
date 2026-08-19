@@ -20,7 +20,7 @@ _LABELS = {
 
 def compute_swot(diagnostic: dict, lang: str = "fr", pestel: dict | None = None,
                   porter: dict | None = None) -> dict:
-    etoile = diagnostic.get("etoile", {})
+    etoile = diagnostic.get("etoile") or {}
     moyens = etoile.get("moyens_production", {})
     perfs = etoile.get("performances_technico_eco", {})
     finances = etoile.get("finances", {})

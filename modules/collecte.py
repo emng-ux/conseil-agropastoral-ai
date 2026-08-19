@@ -94,7 +94,10 @@ def render_branch_form(branch_key: str, diagnostic: dict, lang: str) -> dict:
 def branch_completion_ratio(branch_key: str, diagnostic: dict) -> float:
     """Estime le taux de remplissage d'une branche (pour la visualisation en étoile)."""
     schema = load_schema()["branches"][branch_key]
-    branch_data = diagnostic.get("etoile", {}).get(branch_key, {})
+    # (diagnostic.get("etoile") or {}) protège contre une valeur explicitement
+    # None (pas seulement une clé absente) — peut arriver sur des diagnostics
+    # créés via certains chemins d'import ou anciens formats de données.
+    branch_data = (diagnostic.get("etoile") or {}).get(branch_key) or {}
     total = len(schema["fields"])
     if total == 0:
         return 0.0

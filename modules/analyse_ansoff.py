@@ -22,7 +22,7 @@ _OPTIONS = {
 
 
 def compute_ansoff(diagnostic: dict, lang: str = "fr") -> dict:
-    etoile = diagnostic.get("etoile", {})
+    etoile = diagnostic.get("etoile") or {}
     marche = etoile.get("marche", {})
     finances = etoile.get("finances", {})
 

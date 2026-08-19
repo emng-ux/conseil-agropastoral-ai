@@ -453,7 +453,7 @@ def export_diagnostic_word_bytes(diagnostic: dict, lang: str = "fr",
     _add_entreprise_section_word(doc, diagnostic, lang)
 
     schema = load_schema()["branches"]
-    etoile = diagnostic.get("etoile", {})
+    etoile = diagnostic.get("etoile") or {}
 
     for branch_key, branch in schema.items():
         doc.add_heading(branch["label"].get(lang, branch["label"]["fr"]), level=1)
@@ -540,7 +540,7 @@ def export_diagnostic_pdf_bytes(diagnostic: dict, lang: str = "fr",
     _add_entreprise_section_pdf(pdf, diagnostic, lang)
 
     schema = load_schema()["branches"]
-    etoile = diagnostic.get("etoile", {})
+    etoile = diagnostic.get("etoile") or {}
 
     for branch_key, branch in schema.items():
         pdf.set_font("Helvetica", "B", 13)
