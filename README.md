@@ -39,6 +39,7 @@ connexion Internet est disponible.
 - ✅ **Tableau des amortissements** (sur bouton, sous l'onglet Moyens de production) généré à partir des immobilisations saisies — le foncier n'est jamais amorti, conformément à la règle comptable
 - ✅ **Plan de financement** (Ressources R1-R5 / Emplois E1-E5) avec calcul automatique de 10 indicateurs (taux d'autofinancement, taux de financement externe, capacité de remboursement, etc.) et **qualification automatique** de la situation financière (autonomie forte, dépendance externe, tension de trésorerie, BFR excessif...)
 - ✅ **Comptes hiérarchiques** (National / Régional / Départemental) avec cloisonnement automatique des données par périmètre, **panneau d'administration** (création de comptes, suivi des coûts API, journal d'activité), **messagerie bidirectionnelle** entre niveaux, et photo de profil
+- ✅ **Garde-fou budgétaire** : le chat IA est limité à 12 échanges par diagnostic (compteur visible, réinitialisable par un administrateur si besoin) — coûts d'API maîtrisés à grande échelle
 - ✅ **Import KoboToolbox** : formulaire terrain (XLSForm) prêt à déployer, correspondant exactement au schéma de l'étoile du conseil — les soumissions sont remappées directement dans le diagnostic, **sans IA**, pour une fiabilité maximale (complémentaire à l'import Word/Excel)
 - ✅ **Installable comme PWA sur Android** (icône écran d'accueil, plein écran)
 - ✅ **Script d'installation Windows en 1 clic** (`install_windows.bat`)

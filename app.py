@@ -25,6 +25,11 @@ from modules.export import export_pdf_bytes, export_word_bytes, ExportNotAllowed
 
 st.set_page_config(page_title="Conseil Agropastoral IA", page_icon="🌿", layout="wide")
 
+# Limite d'échanges IA par diagnostic — garde-fou budgétaire (coût maîtrisé par
+# diagnostic). L'administrateur peut réinitialiser ce compteur au cas par cas
+# si un diagnostic complexe le justifie réellement.
+CHAT_EXCHANGE_LIMIT = 12
+
 # --- PWA : rend l'app installable sur l'écran d'accueil (Android notamment).
 # Nécessite [server] enableStaticServing = true dans .streamlit/config.toml,
 # et les fichiers static/manifest.json, static/icon-*.png, static/sw.js. ---
@@ -605,18 +610,33 @@ def page_collecte():
                             with st.chat_message("assistant"):
                                 st.markdown("\n".join(text_parts))
 
-                message = st.chat_input(_("chat_placeholder"))
-                if message:
-                    try:
-                        result = run_turn(st.session_state[chat_key], message, diagnostic, lang)
-                        st.session_state[chat_key] = result["conversation_history"]
-                        st.session_state.current_diagnostic = diagnostic
-                        save_diagnostic(st.session_state.current_diagnostic_id, diagnostic)
-                        if result["ready_for_analysis"]:
-                            st.session_state.chat_ready_for_analysis = True
-                        st.rerun()
-                    except Exception as e:
-                        st.error(str(e))
+                exchange_count = diagnostic.get("ia_exchange_count", 0)
+                st.caption(_("chat_exchange_counter").format(count=exchange_count, limit=CHAT_EXCHANGE_LIMIT))
+
+                if exchange_count >= CHAT_EXCHANGE_LIMIT:
+                    st.warning(_("chat_limit_reached"))
+                    if st.session_state.get("current_account", {}).get("is_admin"):
+                        if st.button(_("chat_limit_reset_admin"), key="chat_limit_reset_btn"):
+                            diagnostic["ia_exchange_count"] = 0
+                            save_diagnostic(st.session_state.current_diagnostic_id, diagnostic)
+                            st.rerun()
+                else:
+                    message = st.chat_input(_("chat_placeholder"))
+                    if message:
+                        try:
+                            result = run_turn(st.session_state[chat_key], message, diagnostic, lang)
+                            st.session_state[chat_key] = result["conversation_history"]
+                            diagnostic["ia_exchange_count"] = exchange_count + 1
+                            st.session_state.current_diagnostic = diagnostic
+                            save_diagnostic(st.session_state.current_diagnostic_id, diagnostic)
+                            from utils.activity_log import log_action
+                            log_action(st.session_state.get("current_user", ""), "message_ia",
+                                       f"Diagnostic {st.session_state.current_diagnostic_id}")
+                            if result["ready_for_analysis"]:
+                                st.session_state.chat_ready_for_analysis = True
+                            st.rerun()
+                        except Exception as e:
+                            st.error(str(e))
 
                 if st.session_state.get("chat_ready_for_analysis"):
                     st.success("✅ " + ("Diagnostic prêt : va dans l'onglet Analyse stratégique."
