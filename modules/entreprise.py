@@ -8,6 +8,8 @@ diagnostic["entreprise"].
 """
 import streamlit as st
 
+from utils.org_settings import format_money
+
 from utils.i18n import t
 
 MOIS = ["Jan", "Fev", "Mar", "Avr", "Mai", "Jun", "Jul", "Aou", "Sep", "Oct", "Nov", "Dec"]
@@ -316,13 +318,13 @@ def render_activites(diagnostic: dict, lang: str):
 
             st.caption(t("activite_marge_brute_avant_label", lang))
             r1, r2 = st.columns(2)
-            r1.metric(t("activite_marge_brute", lang), f"{marge_brute_avant:,.0f}")
-            r2.metric(t("activite_valeur_ajoutee", lang), f"{valeur_ajoutee:,.0f}")
+            r1.metric(t("activite_marge_brute", lang), f"{format_money(marge_brute_avant)}")
+            r2.metric(t("activite_valeur_ajoutee", lang), f"{format_money(valeur_ajoutee)}")
 
             st.caption(t("activite_marge_brute_avec_label", lang))
             r3, r4 = st.columns(2)
-            r3.metric(t("activite_marge_brute_avec_mo", lang), f"{marge_brute_avec:,.0f}")
-            r4.metric(t("activite_marge_directe", lang), f"{marge_directe:,.0f}")
+            r3.metric(t("activite_marge_brute_avec_mo", lang), f"{format_money(marge_brute_avec)}")
+            r4.metric(t("activite_marge_directe", lang), f"{format_money(marge_directe)}")
 
             st.markdown(f"**{t('activite_analyse', lang)}**")
             act["points_forts"] = st.text_area(t("activite_points_forts", lang),
@@ -418,13 +420,13 @@ def render_diagnostic_financier(diagnostic: dict, lang: str):
 
     results = compute_diagnostic_financier(diagnostic)
     r1, r2, r3 = st.columns(3)
-    r1.metric(t("diag_fin_marge_brute_globale", lang), f"{results['marge_brute_globale']:,.0f}")
-    r2.metric(t("diag_fin_ebe", lang), f"{results['ebe']:,.0f}")
-    r3.metric(t("diag_fin_marge_securite", lang), f"{results['marge_securite']:,.0f}")
+    r1.metric(t("diag_fin_marge_brute_globale", lang), f"{format_money(results['marge_brute_globale'])}")
+    r2.metric(t("diag_fin_ebe", lang), f"{format_money(results['ebe'])}")
+    r3.metric(t("diag_fin_marge_securite", lang), f"{format_money(results['marge_securite'])}")
     r4, r5 = st.columns(2)
-    r4.metric(t("diag_fin_marge_brute_avec_mo_globale", lang), f"{results['marge_brute_avec_mo_globale']:,.0f}")
-    r5.metric(t("diag_fin_valeur_ajoutee_globale", lang), f"{results['valeur_ajoutee_globale']:,.0f}")
-    st.metric(t("diag_fin_valeur_ajoutee_globale", lang), f"{results['valeur_ajoutee_globale']:,.0f}")
+    r4.metric(t("diag_fin_marge_brute_avec_mo_globale", lang), f"{format_money(results['marge_brute_avec_mo_globale'])}")
+    r5.metric(t("diag_fin_valeur_ajoutee_globale", lang), f"{format_money(results['valeur_ajoutee_globale'])}")
+    st.metric(t("diag_fin_valeur_ajoutee_globale", lang), f"{format_money(results['valeur_ajoutee_globale'])}")
 
     render_immobilisations(diagnostic, lang)
 

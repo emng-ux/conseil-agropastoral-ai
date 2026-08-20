@@ -20,6 +20,7 @@ def render_admin_panel(lang: str, current_user: str):
 
     tabs = st.tabs([
         "👥 " + ("Comptes" if lang == "fr" else "Accounts"),
+        "🏢 " + ("Organisation" if lang == "fr" else "Organization"),
         "💰 " + ("Coûts API" if lang == "fr" else "API costs"),
         "📋 " + ("Journal d'activité" if lang == "fr" else "Activity log"),
     ])
@@ -95,9 +96,53 @@ def render_admin_panel(lang: str, current_user: str):
                         st.success("✅")
 
     # -------------------------------------------------------------------
-    # Onglet 2 : Coûts API (estimation)
+    # Onglet 2 : Organisation (logo, devise)
     # -------------------------------------------------------------------
     with tabs[1]:
+        from utils.org_settings import get_org_settings, update_org_settings
+        org = get_org_settings()
+
+        st.subheader("🖼️ " + ("Logo de l'organisation" if lang == "fr" else "Organization logo"))
+        if org.get("logo_base64"):
+            import base64 as _b64
+            st.image(_b64.b64decode(org["logo_base64"]), width=160)
+        logo_file = st.file_uploader(
+            "Choisir un logo" if lang == "fr" else "Choose a logo", type=["png", "jpg", "jpeg"],
+            key="org_logo_uploader")
+        if logo_file is not None and st.button("Enregistrer le logo" if lang == "fr" else "Save logo",
+                                                key="org_logo_save_btn"):
+            import base64 as _b64
+            encoded = _b64.b64encode(logo_file.getvalue()).decode("utf-8")
+            update_org_settings(logo_base64=encoded)
+            st.success("✅")
+            st.rerun()
+
+        st.markdown("---")
+        st.subheader("🏢 " + ("Nom de l'organisation" if lang == "fr" else "Organization name"))
+        nom_org = st.text_input("Nom" if lang == "fr" else "Name",
+                                 value=org.get("nom_organisation", ""), key="org_nom_input")
+        if st.button("Enregistrer le nom" if lang == "fr" else "Save name", key="org_nom_save_btn"):
+            update_org_settings(nom_organisation=nom_org)
+            st.success("✅")
+            st.rerun()
+
+        st.markdown("---")
+        st.subheader("💱 " + ("Devise" if lang == "fr" else "Currency"))
+        st.caption("S'applique à l'ensemble des montants affichés dans l'agent (bilan, marges, "
+                   "plan de financement, exports...)." if lang == "fr" else
+                   "Applies to all monetary amounts shown across the agent (balance sheet, "
+                   "margins, funding plan, exports...).")
+        devise = st.text_input("Devise (ex. FCFA, EUR, USD)" if lang == "fr" else "Currency (e.g. FCFA, EUR, USD)",
+                                value=org.get("devise", "FCFA"), key="org_devise_input")
+        if st.button("Enregistrer la devise" if lang == "fr" else "Save currency", key="org_devise_save_btn"):
+            update_org_settings(devise=devise.strip() or "FCFA")
+            st.success("✅")
+            st.rerun()
+
+    # -------------------------------------------------------------------
+    # Onglet 3 : Coûts API (estimation)
+    # -------------------------------------------------------------------
+    with tabs[2]:
         st.caption("⚠️ " + ("Estimation indicative basée sur le nombre d'échanges enregistrés — "
                             "seule la console Anthropic fait foi pour la facturation réelle."
                             if lang == "fr" else
@@ -118,9 +163,9 @@ def render_admin_panel(lang: str, current_user: str):
                     else "No AI exchange recorded yet.")
 
     # -------------------------------------------------------------------
-    # Onglet 3 : Journal d'activité
+    # Onglet 4 : Journal d'activité
     # -------------------------------------------------------------------
-    with tabs[2]:
+    with tabs[3]:
         actions = list_recent_actions(limit=200)
         if not actions:
             st.info("Aucune activité enregistrée pour l'instant." if lang == "fr"

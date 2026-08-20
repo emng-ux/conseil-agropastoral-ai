@@ -291,6 +291,7 @@ with st.sidebar:
         "analyse": _("nav_analyse"),
         "plan": _("nav_plan"),
         "historique": _("nav_historique"),
+        "aide": _("nav_aide"),
     }
     _current_account_nav = st.session_state.get("current_account", {})
     from utils.hierarchy import hierarchical_accounts_available
@@ -332,6 +333,13 @@ def _get_visible_owners():
 
 
 def page_dashboard():
+    from utils.org_settings import get_org_settings
+    org = get_org_settings()
+    if org.get("logo_base64"):
+        import base64 as _b64
+        st.image(_b64.b64decode(org["logo_base64"]), width=180)
+    if org.get("nom_organisation"):
+        st.caption(org["nom_organisation"])
     st.title(_("nav_dashboard"))
 
     col1, col2 = st.columns([2, 1])
@@ -915,6 +923,41 @@ def page_messagerie():
             st.markdown(m["body"])
 
 
+def page_aide():
+    from modules.help_content import (builtin_guide, list_custom_help_entries,
+                                       add_custom_help_entry, delete_custom_help_entry)
+
+    st.title(_("nav_aide"))
+    st.caption(_("aide_intro"))
+
+    for titre, contenu in builtin_guide(lang):
+        with st.expander(titre):
+            st.markdown(contenu)
+
+    custom_entries = list_custom_help_entries()
+    if custom_entries:
+        st.markdown("---")
+        st.subheader(_("aide_entries_custom_title"))
+        for entry in custom_entries:
+            with st.expander(entry.get("titre", "")):
+                st.markdown(entry.get("contenu", ""))
+                if st.session_state.get("current_account", {}).get("is_admin"):
+                    if st.button(_("remove"), key=f"aide_del_{entry.get('id')}"):
+                        delete_custom_help_entry(entry.get("id"))
+                        st.rerun()
+
+    if st.session_state.get("current_account", {}).get("is_admin"):
+        st.markdown("---")
+        st.subheader(_("aide_add_entry_title"))
+        with st.form("add_help_entry_form", clear_on_submit=True):
+            titre = st.text_input(_("aide_entry_titre"))
+            contenu = st.text_area(_("aide_entry_contenu"))
+            if st.form_submit_button(_("aide_add_entry_button")) and titre and contenu:
+                add_custom_help_entry(titre, contenu)
+                st.success("✅")
+                st.rerun()
+
+
 # ---------------------------------------------------------------------------
 # Routage
 # ---------------------------------------------------------------------------
@@ -926,5 +969,6 @@ pages = {
     "historique": page_historique,
     "administration": page_administration,
     "messagerie": page_messagerie,
+    "aide": page_aide,
 }
 pages[st.session_state.page]()

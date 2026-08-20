@@ -349,5 +349,12 @@
   "import_kobo_select": "Choose a submission",
   "import_kobo_button": "📱 Import this submission",
   "import_kobo_no_submissions": "No submissions found yet for this form.",
-  "import_kobo_needs_config": "KoboToolbox import requires configuration (API token, server URL, form ID) — contact the administrator."
+  "import_kobo_needs_config": "KoboToolbox import requires configuration (API token, server URL, form ID) — contact the administrator.",
+  "nav_aide": "❓ Help",
+  "aide_intro": "User guide for the agent, organized by section. The administrator can also add custom entries (definitions, organization-specific guidance) at the bottom of this page.",
+  "aide_entries_custom_title": "📌 Additional information",
+  "aide_add_entry_title": "➕ Add a help entry (admin)",
+  "aide_entry_titre": "Title",
+  "aide_entry_contenu": "Content",
+  "aide_add_entry_button": "Add"
 }

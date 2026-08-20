@@ -40,6 +40,8 @@ connexion Internet est disponible.
 - ✅ **Plan de financement** (Ressources R1-R5 / Emplois E1-E5) avec calcul automatique de 10 indicateurs (taux d'autofinancement, taux de financement externe, capacité de remboursement, etc.) et **qualification automatique** de la situation financière (autonomie forte, dépendance externe, tension de trésorerie, BFR excessif...)
 - ✅ **Comptes hiérarchiques** (National / Régional / Départemental) avec cloisonnement automatique des données par périmètre, **panneau d'administration** (création de comptes, suivi des coûts API, journal d'activité), **messagerie bidirectionnelle** entre niveaux, et photo de profil
 - ✅ **Garde-fou budgétaire** : le chat IA est limité à 12 échanges par diagnostic (compteur visible, réinitialisable par un administrateur si besoin) — coûts d'API maîtrisés à grande échelle
+- ✅ **Logo et devise personnalisables** par l'administrateur (logo affiché sur le tableau de bord, devise appliquée automatiquement à tous les montants de l'agent — bilan, marges, plan de financement, exports)
+- ✅ **Page d'Aide intégrée** : guide d'utilisation complet par section, avec possibilité pour l'administrateur d'ajouter des entrées personnalisées (définitions, consignes propres à l'organisation)
 - ✅ **Import KoboToolbox** : formulaire terrain (XLSForm) prêt à déployer, correspondant exactement au schéma de l'étoile du conseil — les soumissions sont remappées directement dans le diagnostic, **sans IA**, pour une fiabilité maximale (complémentaire à l'import Word/Excel)
 - ✅ **Installable comme PWA sur Android** (icône écran d'accueil, plein écran)
 - ✅ **Script d'installation Windows en 1 clic** (`install_windows.bat`)
@@ -134,6 +136,22 @@ diagnostics créés sur la version en ligne peuvent être perdus au redémarrage
      username text,
      action text,
      details text,
+     created_at timestamptz not null default now()
+   );
+
+   -- Paramètres d'organisation (logo, nom, devise) — un seul enregistrement
+   create table org_settings (
+     id bigint generated always as identity primary key,
+     logo_base64 text,
+     nom_organisation text,
+     devise text default 'FCFA'
+   );
+
+   -- Entrées d'aide personnalisées (ajoutées par l'administrateur)
+   create table help_entries (
+     id bigint generated always as identity primary key,
+     titre text,
+     contenu text,
      created_at timestamptz not null default now()
    );
    ```

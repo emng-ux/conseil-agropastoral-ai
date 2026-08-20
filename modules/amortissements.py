@@ -9,6 +9,8 @@ quelle que soit la valeur éventuellement saisie par erreur.
 """
 import streamlit as st
 
+from utils.org_settings import format_money
+
 from utils.i18n import t
 
 CATEGORIES_ORDER = ["Foncier", "Plantations", "Matériel", "Équipements", "Bâtiments",
@@ -95,13 +97,13 @@ def render_tableau_amortissements(diagnostic: dict, lang: str):
     rows = []
     for l in results["lignes"]:
         amort_display = t("amortissements_non_amortissable", lang) if l["non_amortissable"] \
-            else f"{l['amortissement']:,.0f}"
+            else f"{format_money(l['amortissement'])}"
         rows.append({
             headers[0]: l["categorie"],
-            headers[1]: f"{l['valeur_achat']:,.0f}",
+            headers[1]: f"{format_money(l['valeur_achat'])}",
             headers[2]: l["annee_acquisition"],
             headers[3]: l["quantite"],
-            headers[4]: f"{l['valeur_actuelle']:,.0f}",
+            headers[4]: f"{format_money(l['valeur_actuelle'])}",
             headers[5]: l["duree_vie_restante"],
             headers[6]: amort_display,
         })
@@ -110,7 +112,7 @@ def render_tableau_amortissements(diagnostic: dict, lang: str):
 
     totaux = results["totaux"]
     c1, c2, c3 = st.columns(3)
-    c1.metric(t("amortissements_total_valeur_achat", lang), f"{totaux['valeur_achat']:,.0f}")
-    c2.metric(t("amortissements_total_valeur_actuelle", lang), f"{totaux['valeur_actuelle']:,.0f}")
-    c3.metric(t("amortissements_total_amortissement", lang), f"{totaux['amortissement']:,.0f}")
+    c1.metric(t("amortissements_total_valeur_achat", lang), f"{format_money(totaux['valeur_achat'])}")
+    c2.metric(t("amortissements_total_valeur_actuelle", lang), f"{format_money(totaux['valeur_actuelle'])}")
+    c3.metric(t("amortissements_total_amortissement", lang), f"{format_money(totaux['amortissement'])}")
     st.caption(t("amortissements_foncier_note", lang))

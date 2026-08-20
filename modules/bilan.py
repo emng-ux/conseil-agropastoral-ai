@@ -31,6 +31,8 @@ seuls les totaux, FDR, BFR et le tableau de financement sont calculés.
 """
 import streamlit as st
 
+from utils.org_settings import format_money
+
 from utils.i18n import t
 
 
@@ -145,7 +147,7 @@ def render_bilan_periode(diagnostic: dict, lang: str, periode: str):
     _num(vd, "placements", "bilan_placements", lang, f"{periode}_placements", d3)
 
     totals = compute_totals(p)
-    st.metric(t("bilan_total_actif", lang), f"{totals['total_actif']:,.0f}")
+    st.metric(t("bilan_total_actif", lang), f"{format_money(totals['total_actif'])}")
 
     st.markdown("---")
     st.markdown(f"### {t('bilan_passif', lang)}")
@@ -187,16 +189,16 @@ def render_bilan_periode(diagnostic: dict, lang: str, periode: str):
         t("bilan_dettes_associes", lang), value=float(p["passif"].get("dettes_associes_membres", 0.0)),
         step=1000.0, key=f"{periode}_dettassoc")
 
-    st.metric(t("bilan_total_passif", lang), f"{totals['total_passif']:,.0f}")
+    st.metric(t("bilan_total_passif", lang), f"{format_money(totals['total_passif'])}")
 
     if round(totals["total_actif"], 2) != round(totals["total_passif"], 2):
         st.warning(t("bilan_desequilibre", lang).format(ecart=totals["total_actif"] - totals["total_passif"]))
 
     st.markdown("---")
     r1, r2, r3 = st.columns(3)
-    r1.metric("FDR", f"{totals['fdr']:,.0f}")
-    r2.metric("BFR", f"{totals['bfr']:,.0f}")
-    r3.metric(t("bilan_tresorerie", lang), f"{totals['tresorerie']:,.0f}")
+    r1.metric("FDR", f"{format_money(totals['fdr'])}")
+    r2.metric("BFR", f"{format_money(totals['bfr'])}")
+    r3.metric(t("bilan_tresorerie", lang), f"{format_money(totals['tresorerie'])}")
 
 
 # ---------------------------------------------------------------------------
@@ -383,32 +385,32 @@ def render_bilan(diagnostic: dict, lang: str):
         results = compute_tableau_financement(diagnostic)
 
         r1, r2, r3 = st.columns(3)
-        r1.metric(t("bilan_delta_fdr", lang), f"{results['delta_fdr']:,.0f}")
-        r2.metric(t("bilan_delta_bfr", lang), f"{results['delta_bfr']:,.0f}")
-        r3.metric(t("bilan_delta_tresorerie", lang), f"{results['delta_tresorerie']:,.0f}")
+        r1.metric(t("bilan_delta_fdr", lang), f"{format_money(results['delta_fdr'])}")
+        r2.metric(t("bilan_delta_bfr", lang), f"{format_money(results['delta_bfr'])}")
+        r3.metric(t("bilan_delta_tresorerie", lang), f"{format_money(results['delta_tresorerie'])}")
 
         st.markdown(f"#### {t('bilan_partie1', lang)}")
         c1, c2 = st.columns(2)
         with c1:
             st.markdown(f"**{t('bilan_emplois', lang)}**")
             for path, val in results["partie1_emplois"]:
-                st.markdown(f"- {_label_for(path, lang)} : {val:,.0f}")
-            st.markdown(f"**{t('bilan_total', lang)} : {results['total_p1_emplois']:,.0f}**")
+                st.markdown(f"- {_label_for(path, lang)} : {format_money(val)}")
+            st.markdown(f"**{t('bilan_total', lang)} : {format_money(results['total_p1_emplois'])}**")
         with c2:
             st.markdown(f"**{t('bilan_ressources', lang)}**")
             for path, val in results["partie1_ressources"]:
-                st.markdown(f"- {_label_for(path, lang)} : {val:,.0f}")
-            st.markdown(f"**{t('bilan_total', lang)} : {results['total_p1_ressources']:,.0f}**")
+                st.markdown(f"- {_label_for(path, lang)} : {format_money(val)}")
+            st.markdown(f"**{t('bilan_total', lang)} : {format_money(results['total_p1_ressources'])}**")
 
         st.markdown(f"#### {t('bilan_partie2', lang)}")
         c3, c4 = st.columns(2)
         with c3:
             st.markdown(f"**{t('bilan_emplois', lang)}**")
             for path, val in results["partie2_emplois"]:
-                st.markdown(f"- {_label_for(path, lang)} : {val:,.0f}")
-            st.markdown(f"**{t('bilan_total', lang)} : {results['total_p2_emplois']:,.0f}**")
+                st.markdown(f"- {_label_for(path, lang)} : {format_money(val)}")
+            st.markdown(f"**{t('bilan_total', lang)} : {format_money(results['total_p2_emplois'])}**")
         with c4:
             st.markdown(f"**{t('bilan_ressources', lang)}**")
             for path, val in results["partie2_ressources"]:
-                st.markdown(f"- {_label_for(path, lang)} : {val:,.0f}")
-            st.markdown(f"**{t('bilan_total', lang)} : {results['total_p2_ressources']:,.0f}**")
+                st.markdown(f"- {_label_for(path, lang)} : {format_money(val)}")
+            st.markdown(f"**{t('bilan_total', lang)} : {format_money(results['total_p2_ressources'])}**")

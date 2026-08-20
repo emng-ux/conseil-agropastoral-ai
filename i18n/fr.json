@@ -349,5 +349,12 @@
   "import_kobo_select": "Choisir une soumission",
   "import_kobo_button": "📱 Importer cette soumission",
   "import_kobo_no_submissions": "Aucune soumission trouvée pour l'instant sur ce formulaire.",
-  "import_kobo_needs_config": "L'import KoboToolbox nécessite une configuration (jeton API, URL du serveur, identifiant du formulaire) — contacte l'administrateur."
+  "import_kobo_needs_config": "L'import KoboToolbox nécessite une configuration (jeton API, URL du serveur, identifiant du formulaire) — contacte l'administrateur.",
+  "nav_aide": "❓ Aide",
+  "aide_intro": "Guide d'utilisation de l'agent, organisé par section. L'administrateur peut aussi ajouter des entrées personnalisées (définitions, consignes propres à l'organisation) en bas de cette page.",
+  "aide_entries_custom_title": "📌 Informations complémentaires",
+  "aide_add_entry_title": "➕ Ajouter une entrée d'aide (admin)",
+  "aide_entry_titre": "Titre",
+  "aide_entry_contenu": "Contenu",
+  "aide_add_entry_button": "Ajouter"
 }

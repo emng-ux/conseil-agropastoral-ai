@@ -10,6 +10,8 @@ une vision de type plan de financement de projet/exercice.
 """
 import streamlit as st
 
+from utils.org_settings import format_money
+
 RESSOURCES_SCHEMA = {
     "r1": ["epargne", "autofinancement", "benefices_excedents", "apports", "cotisations"],
     "r2": ["banque", "microfinance", "credit_campagne", "credit_fournisseur"],
@@ -127,10 +129,10 @@ def render_plan_financement(diagnostic: dict, lang: str):
         results_preview = compute_plan_financement(diagnostic)
         st.caption(
             ("Suggestion automatique : solde de financement avant trésorerie = "
-             f"{results_preview['solde_financement']:,.0f} (tu peux ajuster manuellement)")
+             f"{format_money(results_preview['solde_financement'])} (tu peux ajuster manuellement)")
             if lang == "fr" else
             ("Automatic suggestion: funding balance before cash = "
-             f"{results_preview['solde_financement']:,.0f} (you can override manually)"))
+             f"{format_money(results_preview['solde_financement'])} (you can override manually)"))
         e5 = pf["emplois"]["e5"]
         default_val = e5.get("variation_tresorerie")
         if default_val is None:
@@ -239,17 +241,17 @@ def render_resultats_plan_financement(diagnostic: dict, lang: str):
     fr = lang == "fr"
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("Total ressources" if fr else "Total resources", f"{results['total_ressources']:,.0f}")
-    c2.metric("Total emplois" if fr else "Total uses", f"{results['total_emplois']:,.0f}")
-    c3.metric("Solde de financement" if fr else "Funding balance", f"{results['solde_financement']:,.0f}")
+    c1.metric("Total ressources" if fr else "Total resources", f"{format_money(results['total_ressources'])}")
+    c2.metric("Total emplois" if fr else "Total uses", f"{format_money(results['total_emplois'])}")
+    c3.metric("Solde de financement" if fr else "Funding balance", f"{format_money(results['solde_financement'])}")
 
     c4, c5 = st.columns(2)
     c4.metric("Variation de trésorerie" if fr else "Cash position change",
-              f"{results['variation_tresorerie']:,.0f}")
+              f"{format_money(results['variation_tresorerie'])}")
     if round(results['total_ressources'], 2) != round(results['total_emplois'], 2):
         ecart = results['total_ressources'] - results['total_emplois']
-        c5.warning((f"Plan non équilibré (écart de {ecart:,.0f})" if fr
-                    else f"Plan not balanced (gap of {ecart:,.0f})"))
+        c5.warning((f"Plan non équilibré (écart de {format_money(ecart)})" if fr
+                    else f"Plan not balanced (gap of {format_money(ecart)})"))
 
     st.markdown("##### " + ("Indicateurs" if fr else "Indicators"))
     i1, i2 = st.columns(2)

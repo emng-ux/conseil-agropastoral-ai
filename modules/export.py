@@ -9,6 +9,7 @@ from docx.shared import Pt
 from fpdf import FPDF
 
 from modules.plan_strategique import is_validated
+from utils.org_settings import format_money
 
 
 class ExportNotAllowedError(Exception):
@@ -90,10 +91,10 @@ def _add_entreprise_section_word(doc, diagnostic: dict, lang: str):
                                    compute_marge_directe(a), compute_valeur_ajoutee(a))
             doc.add_paragraph(
                 f"{'Marge brute avant MO/tiers' if lang == 'fr' else 'Gross margin before labour/3rd party'}: "
-                f"{mb:,.0f} | {'Valeur ajoutée' if lang == 'fr' else 'Value added'}: {va:,.0f}")
+                f"{format_money(mb)} | {'Valeur ajoutée' if lang == 'fr' else 'Value added'}: {format_money(va)}")
             doc.add_paragraph(
                 f"{'Marge brute avec MO/tiers' if lang == 'fr' else 'Gross margin with labour/3rd party'}: "
-                f"{mb_avec:,.0f} | {'Marge directe' if lang == 'fr' else 'Direct margin'}: {md:,.0f}")
+                f"{format_money(mb_avec)} | {'Marge directe' if lang == 'fr' else 'Direct margin'}: {format_money(md)}")
             if a.get("finalites_objectifs"):
                 doc.add_paragraph(a["finalites_objectifs"])
             if a.get("points_forts"):
@@ -106,10 +107,10 @@ def _add_entreprise_section_word(doc, diagnostic: dict, lang: str):
         doc.add_heading("Diagnostic économique et financier global" if lang == "fr"
                          else "Overall economic and financial diagnosis", level=2)
         doc.add_paragraph(f"{'Marge brute globale' if lang == 'fr' else 'Overall gross margin'}: "
-                           f"{results['marge_brute_globale']:,.0f}")
-        doc.add_paragraph(f"EBE: {results['ebe']:,.0f}")
+                           f"{format_money(results['marge_brute_globale'])}")
+        doc.add_paragraph(f"EBE: {format_money(results['ebe'])}")
         doc.add_paragraph(f"{'Marge de sécurité' if lang == 'fr' else 'Safety margin'}: "
-                           f"{results['marge_securite']:,.0f}")
+                           f"{format_money(results['marge_securite'])}")
 
     immos = ent.get("immobilisations", [])
     if immos:
@@ -117,7 +118,7 @@ def _add_entreprise_section_word(doc, diagnostic: dict, lang: str):
         for im in immos:
             doc.add_paragraph(
                 f"{im.get('categorie', '')} ({im.get('annee_acquisition', '')}) — "
-                f"{'valeur actuelle' if lang == 'fr' else 'current value'}: {im.get('valeur_actuelle', 0):,.0f}",
+                f"{'valeur actuelle' if lang == 'fr' else 'current value'}: {format_money(im.get('valeur_actuelle', 0))}",
                 style="List Bullet")
 
     bilan = ent.get("bilan", {})
@@ -125,16 +126,16 @@ def _add_entreprise_section_word(doc, diagnostic: dict, lang: str):
         from modules.bilan import compute_totals, compute_tableau_financement
         totals_fin = compute_totals(bilan["fin"])
         doc.add_heading("Bilan (fin d'exercice)" if lang == "fr" else "Balance sheet (year end)", level=2)
-        doc.add_paragraph(f"{'Total actif' if lang == 'fr' else 'Total assets'}: {totals_fin['total_actif']:,.0f} — "
-                           f"{'Total passif' if lang == 'fr' else 'Total liabilities'}: {totals_fin['total_passif']:,.0f}")
-        doc.add_paragraph(f"FDR: {totals_fin['fdr']:,.0f} | BFR: {totals_fin['bfr']:,.0f} | "
-                           f"{'Trésorerie' if lang == 'fr' else 'Cash'}: {totals_fin['tresorerie']:,.0f}")
+        doc.add_paragraph(f"{'Total actif' if lang == 'fr' else 'Total assets'}: {format_money(totals_fin['total_actif'])} — "
+                           f"{'Total passif' if lang == 'fr' else 'Total liabilities'}: {format_money(totals_fin['total_passif'])}")
+        doc.add_paragraph(f"FDR: {format_money(totals_fin['fdr'])} | BFR: {format_money(totals_fin['bfr'])} | "
+                           f"{'Trésorerie' if lang == 'fr' else 'Cash'}: {format_money(totals_fin['tresorerie'])}")
         if bilan.get("debut") and isinstance(bilan.get("debut"), dict) and "actif" in bilan.get("debut", {}):
             tf = compute_tableau_financement(diagnostic)
             doc.add_paragraph(
-                f"{'Variation FDR' if lang == 'fr' else 'FDR change'}: {tf['delta_fdr']:,.0f} | "
-                f"{'Variation BFR' if lang == 'fr' else 'BFR change'}: {tf['delta_bfr']:,.0f} | "
-                f"{'Variation trésorerie' if lang == 'fr' else 'Cash change'}: {tf['delta_tresorerie']:,.0f}")
+                f"{'Variation FDR' if lang == 'fr' else 'FDR change'}: {format_money(tf['delta_fdr'])} | "
+                f"{'Variation BFR' if lang == 'fr' else 'BFR change'}: {format_money(tf['delta_bfr'])} | "
+                f"{'Variation trésorerie' if lang == 'fr' else 'Cash change'}: {format_money(tf['delta_tresorerie'])}")
 
 
 def _add_entreprise_section_pdf(pdf, diagnostic: dict, lang: str):
@@ -194,21 +195,21 @@ def _add_entreprise_section_pdf(pdf, diagnostic: dict, lang: str):
         for a in activites:
             mb, mb_avec, md, va = (compute_marge_brute(a), compute_marge_brute_avec_mo_tiers(a),
                                    compute_marge_directe(a), compute_valeur_ajoutee(a))
-            pdf.line(f"- {a.get('nom', '') or '-'} : MB avant MO/tiers {mb:,.0f} / MB avec MO/tiers "
-                     f"{mb_avec:,.0f} / marge directe {md:,.0f} / valeur ajoutee {va:,.0f}"
+            pdf.line(f"- {a.get('nom', '') or '-'} : MB avant MO/tiers {format_money(mb)} / MB avec MO/tiers "
+                     f"{format_money(mb_avec)} / marge directe {format_money(md)} / valeur ajoutee {format_money(va)}"
                      if lang == "fr" else
-                     f"- {a.get('nom', '') or '-'}: GM before labour/3rd {mb:,.0f} / GM with labour/3rd "
-                     f"{mb_avec:,.0f} / direct margin {md:,.0f} / value added {va:,.0f}", height=6)
+                     f"- {a.get('nom', '') or '-'}: GM before labour/3rd {format_money(mb)} / GM with labour/3rd "
+                     f"{format_money(mb_avec)} / direct margin {format_money(md)} / value added {format_money(va)}", height=6)
 
     if ent.get("diagnostic_financier") or activites:
         results = compute_diagnostic_financier(diagnostic)
         pdf.set_font("Helvetica", "B", 12)
         pdf.title_line("Diagnostic economique et financier" if lang == "fr" else "Financial diagnosis")
         pdf.set_font("Helvetica", size=10)
-        pdf.line(f"- Marge brute globale: {results['marge_brute_globale']:,.0f}", height=6)
-        pdf.line(f"- EBE: {results['ebe']:,.0f}", height=6)
-        pdf.line(f"- Marge de securite: {results['marge_securite']:,.0f}"
-                 if lang == "fr" else f"- Safety margin: {results['marge_securite']:,.0f}", height=6)
+        pdf.line(f"- Marge brute globale: {format_money(results['marge_brute_globale'])}", height=6)
+        pdf.line(f"- EBE: {format_money(results['ebe'])}", height=6)
+        pdf.line(f"- Marge de securite: {format_money(results['marge_securite'])}"
+                 if lang == "fr" else f"- Safety margin: {format_money(results['marge_securite'])}", height=6)
 
     immos = ent.get("immobilisations", [])
     if immos:
@@ -217,7 +218,7 @@ def _add_entreprise_section_pdf(pdf, diagnostic: dict, lang: str):
         pdf.set_font("Helvetica", size=10)
         for im in immos:
             pdf.line(f"- {im.get('categorie', '')} ({im.get('annee_acquisition', '')}): "
-                     f"{im.get('valeur_actuelle', 0):,.0f}", height=6)
+                     f"{format_money(im.get('valeur_actuelle', 0))}", height=6)
 
     bilan = ent.get("bilan", {})
     if bilan.get("fin") and isinstance(bilan.get("fin"), dict) and "actif" in bilan.get("fin", {}):
@@ -226,16 +227,16 @@ def _add_entreprise_section_pdf(pdf, diagnostic: dict, lang: str):
         pdf.set_font("Helvetica", "B", 12)
         pdf.title_line("Bilan (fin d'exercice)" if lang == "fr" else "Balance sheet (year end)")
         pdf.set_font("Helvetica", size=10)
-        pdf.line(f"- Total actif: {totals_fin['total_actif']:,.0f} | Total passif: {totals_fin['total_passif']:,.0f}"
+        pdf.line(f"- Total actif: {format_money(totals_fin['total_actif'])} | Total passif: {format_money(totals_fin['total_passif'])}"
                  if lang == "fr" else
-                 f"- Total assets: {totals_fin['total_actif']:,.0f} | "
-                 f"Total liabilities: {totals_fin['total_passif']:,.0f}", height=6)
-        pdf.line(f"- FDR: {totals_fin['fdr']:,.0f} | BFR: {totals_fin['bfr']:,.0f} | "
-                 f"Tresorerie: {totals_fin['tresorerie']:,.0f}", height=6)
+                 f"- Total assets: {format_money(totals_fin['total_actif'])} | "
+                 f"Total liabilities: {format_money(totals_fin['total_passif'])}", height=6)
+        pdf.line(f"- FDR: {format_money(totals_fin['fdr'])} | BFR: {format_money(totals_fin['bfr'])} | "
+                 f"Tresorerie: {format_money(totals_fin['tresorerie'])}", height=6)
         if bilan.get("debut") and isinstance(bilan.get("debut"), dict) and "actif" in bilan.get("debut", {}):
             tf = compute_tableau_financement(diagnostic)
-            pdf.line(f"- Variation FDR: {tf['delta_fdr']:,.0f} | Variation BFR: {tf['delta_bfr']:,.0f} | "
-                     f"Variation tresorerie: {tf['delta_tresorerie']:,.0f}", height=6)
+            pdf.line(f"- Variation FDR: {format_money(tf['delta_fdr'])} | Variation BFR: {format_money(tf['delta_bfr'])} | "
+                     f"Variation tresorerie: {format_money(tf['delta_tresorerie'])}", height=6)
     pdf.ln(2)
 
 
