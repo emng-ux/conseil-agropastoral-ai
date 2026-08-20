@@ -30,6 +30,19 @@ def _field_key(branch_key: str, field_id: str) -> str:
     return f"{branch_key}.{field_id}"
 
 
+def _safe_float(value, default: float = 0.0) -> float:
+    """Convertit en float sans jamais lever d'exception — retombe sur `default`
+    pour tout ce qui n'est pas un nombre valide (texte libre laissé par une
+    extraction IA imparfaite, None, liste, etc.). Protège tous les champs
+    numériques du formulaire, quelle que soit la source de la donnée."""
+    try:
+        if value is None or isinstance(value, (list, dict, bool)):
+            return default
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def render_activity_list(branch_data: dict, field, lang: str) -> list:
     """Champ spécial : liste d'activités/produits pour la matrice BCG."""
     label = field["label"].get(lang, field["label"]["fr"])
@@ -37,17 +50,20 @@ def render_activity_list(branch_data: dict, field, lang: str) -> list:
     activities = branch_data.get(field["id"], [])
     if not isinstance(activities, list):
         activities = []
+    # Chaque élément doit être un dict — neutralise silencieusement tout élément
+    # malformé (ex. une chaîne renvoyée par erreur par une extraction IA).
+    activities = [a if isinstance(a, dict) else {} for a in activities]
 
     from utils.i18n import t
     for i, act in enumerate(list(activities)):
         cols = st.columns([3, 2, 2, 1])
-        act["nom"] = cols[0].text_input(t("activity_name", lang), value=act.get("nom", ""),
+        act["nom"] = cols[0].text_input(t("activity_name", lang), value=str(act.get("nom", "") or ""),
                                          key=f"{field['id']}_nom_{i}")
         act["part_marche_relative"] = cols[1].number_input(
             t("activity_market_share", lang), min_value=0.0, max_value=5.0, step=0.1,
-            value=float(act.get("part_marche_relative", 1.0)), key=f"{field['id']}_pm_{i}")
+            value=_safe_float(act.get("part_marche_relative"), 1.0), key=f"{field['id']}_pm_{i}")
         act["taux_croissance"] = cols[2].number_input(
-            t("activity_growth", lang), step=1.0, value=float(act.get("taux_croissance", 0.0)),
+            t("activity_growth", lang), step=1.0, value=_safe_float(act.get("taux_croissance"), 0.0),
             key=f"{field['id']}_tc_{i}")
         if cols[3].button(t("remove", lang), key=f"{field['id']}_rm_{i}"):
             activities.pop(i)
@@ -63,7 +79,13 @@ def render_activity_list(branch_data: dict, field, lang: str) -> list:
 def render_branch_form(branch_key: str, diagnostic: dict, lang: str) -> dict:
     """Affiche les champs d'une branche et renvoie les valeurs saisies."""
     schema = load_schema()["branches"][branch_key]
-    branch_data = diagnostic.setdefault("etoile", {}).setdefault(branch_key, {})
+    etoile = diagnostic.setdefault("etoile", {})
+    if not isinstance(etoile, dict):
+        etoile = {}
+        diagnostic["etoile"] = etoile
+    existing = etoile.get(branch_key)
+    branch_data = existing if isinstance(existing, dict) else {}
+    etoile[branch_key] = branch_data
 
     for field in schema["fields"]:
         fid = field["id"]
@@ -74,10 +96,11 @@ def render_branch_form(branch_key: str, diagnostic: dict, lang: str) -> dict:
         if field["type"] == "number":
             full_label = f"{label} ({unit})" if unit else label
             branch_data[fid] = st.number_input(
-                full_label, value=float(branch_data.get(fid, 0.0)), key=widget_key)
+                full_label, value=_safe_float(branch_data.get(fid), 0.0), key=widget_key)
         elif field["type"] == "textarea":
+            raw = branch_data.get(fid, "")
             branch_data[fid] = st.text_area(
-                label, value=branch_data.get(fid, ""), key=widget_key)
+                label, value=raw if isinstance(raw, str) else "", key=widget_key)
         elif field["type"] == "select":
             options = field["options"].get(lang, field["options"]["fr"])
             current = branch_data.get(fid, options[0])
@@ -86,7 +109,9 @@ def render_branch_form(branch_key: str, diagnostic: dict, lang: str) -> dict:
         elif field["type"] == "activity_list":
             branch_data[fid] = render_activity_list(branch_data, field, lang)
         else:
-            branch_data[fid] = st.text_input(label, value=branch_data.get(fid, ""), key=widget_key)
+            raw = branch_data.get(fid, "")
+            branch_data[fid] = st.text_input(
+                label, value=raw if isinstance(raw, str) else "", key=widget_key)
 
     return branch_data
 
