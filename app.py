@@ -429,16 +429,16 @@ def page_dashboard():
         st.subheader(_("import_kobo_title"))
         from modules.kobo_import import kobo_available, list_kobo_submissions, \
             build_diagnostic_from_kobo_submission, submission_label
-        if kobo_available():
-            st.caption(_("import_kobo_help"))
-            with st.expander(_("import_kobo_template_title")):
-                st.caption(_("import_kobo_template_help"))
-                from modules.kobo_form_generator import generate_kobo_xlsform_bytes
-                st.download_button(_("import_kobo_template_download"),
-                                    data=generate_kobo_xlsform_bytes(),
-                                    file_name="formulaire_kobo_conseil_agropastoral.xlsx",
-                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        st.caption(_("import_kobo_help"))
+        with st.expander(_("import_kobo_template_title")):
+            st.caption(_("import_kobo_template_help"))
+            from modules.kobo_form_generator import generate_kobo_xlsform_bytes
+            st.download_button(_("import_kobo_template_download"),
+                                data=generate_kobo_xlsform_bytes(),
+                                file_name="formulaire_kobo_conseil_agropastoral.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
+        if kobo_available():
             nom_kobo = st.text_input(_("diagnostic_name"), key="kobo_nom")
             type_kobo = st.selectbox(_("diagnostic_type"), [_("type_efa"), _("type_op")], key="kobo_type")
             conseiller_kobo = st.text_input(_("conseiller_name"), key="kobo_conseiller")
