@@ -39,6 +39,7 @@ connexion Internet est disponible.
 - ✅ **Tableau des amortissements** (sur bouton, sous l'onglet Moyens de production) généré à partir des immobilisations saisies — le foncier n'est jamais amorti, conformément à la règle comptable
 - ✅ **Plan de financement** (Ressources R1-R5 / Emplois E1-E5) avec calcul automatique de 10 indicateurs (taux d'autofinancement, taux de financement externe, capacité de remboursement, etc.) et **qualification automatique** de la situation financière (autonomie forte, dépendance externe, tension de trésorerie, BFR excessif...)
 - ✅ **Comptes hiérarchiques** (National / Régional / Départemental) avec cloisonnement automatique des données par périmètre, **panneau d'administration** (création de comptes, suivi des coûts API, journal d'activité), **messagerie bidirectionnelle** entre niveaux, et photo de profil
+- ✅ **Import KoboToolbox** : formulaire terrain (XLSForm) prêt à déployer, correspondant exactement au schéma de l'étoile du conseil — les soumissions sont remappées directement dans le diagnostic, **sans IA**, pour une fiabilité maximale (complémentaire à l'import Word/Excel)
 - ✅ **Installable comme PWA sur Android** (icône écran d'accueil, plein écran)
 - ✅ **Script d'installation Windows en 1 clic** (`install_windows.bat`)
 
@@ -67,6 +68,21 @@ Pour un conseiller qui n'a jamais installé le projet sur son ordinateur :
 2. Clic droit sur la page → **Enregistrer sous** → sauvegarde le fichier `install_windows.bat` (ex. sur le Bureau)
 3. Double-clique sur ce fichier : il installe automatiquement Git/Python si besoin (ou indique comment faire), clone le projet, installe les dépendances et lance l'agent
 4. Pour les lancements suivants, utilise `lancer_agent.bat` (créé dans le même dossier que le projet) — bien plus rapide, pas de réinstallation
+
+## Import KoboToolbox (collecte terrain fiable, sans IA)
+
+1. Dans l'app, va dans "Nouveau diagnostic" → "📱 Importer depuis KoboToolbox" →
+   télécharge le formulaire (XLSForm), puis importe-le dans KoboToolbox
+   ("New" > "Import an XLSForm") pour le déployer.
+2. Dans KoboToolbox, récupère le jeton API (Account Settings > Security) et
+   l'identifiant du formulaire déployé (visible dans l'URL du projet, ex.
+   `aXXXXXXXXXXXXXXXXXXXXXX`).
+3. Ajoute ces secrets dans Streamlit Cloud :
+   ```toml
+   KOBO_API_TOKEN = "..."
+   KOBO_SERVER_URL = "https://kf.kobotoolbox.org"   # ou ton serveur Kobo
+   KOBO_ASSET_UID = "..."
+   ```
 
 ## Persistance en ligne (Supabase) et authentification
 

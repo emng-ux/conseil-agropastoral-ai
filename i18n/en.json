@@ -336,5 +336,15 @@
   "messagerie_destinataire": "Recipient",
   "messagerie_message": "Message",
   "messagerie_envoyer": "Send",
-  "messagerie_aucun_message": "No messages yet."
+  "messagerie_aucun_message": "No messages yet.",
+  "import_kobo_title": "📱 Import from KoboToolbox",
+  "import_kobo_help": "Directly retrieves a field submission collected via KoboToolbox — no AI involved, fields are remapped directly from the deployed form (maximum reliability).",
+  "import_kobo_template_title": "📥 Download the form to deploy on Kobo (one-time setup)",
+  "import_kobo_template_help": "This .xlsx file is a ready-to-import XLSForm ('New' > 'Import an XLSForm' in KoboToolbox). It matches exactly the étoile du conseil schema — collected answers will be automatically recognized by the agent.",
+  "import_kobo_template_download": "⬇️ Download Kobo form (XLSForm)",
+  "import_kobo_refresh": "🔄 Refresh submission list",
+  "import_kobo_select": "Choose a submission",
+  "import_kobo_button": "📱 Import this submission",
+  "import_kobo_no_submissions": "No submissions found yet for this form.",
+  "import_kobo_needs_config": "KoboToolbox import requires configuration (API token, server URL, form ID) — contact the administrator."
 }

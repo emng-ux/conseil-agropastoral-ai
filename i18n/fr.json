@@ -336,5 +336,15 @@
   "messagerie_destinataire": "Destinataire",
   "messagerie_message": "Message",
   "messagerie_envoyer": "Envoyer",
-  "messagerie_aucun_message": "Aucun message pour l'instant."
+  "messagerie_aucun_message": "Aucun message pour l'instant.",
+  "import_kobo_title": "📱 Importer depuis KoboToolbox",
+  "import_kobo_help": "Récupère directement une soumission de terrain collectée via KoboToolbox — aucune IA impliquée, les champs sont remappés directement d'après le formulaire déployé (fiabilité maximale).",
+  "import_kobo_template_title": "📥 Télécharger le formulaire à déployer sur Kobo (une seule fois)",
+  "import_kobo_template_help": "Ce fichier .xlsx est un XLSForm prêt à importer dans KoboToolbox ('New' > 'Import an XLSForm'). Il correspond exactement au schéma de l'étoile du conseil — les réponses collectées seront automatiquement reconnues par l'agent.",
+  "import_kobo_template_download": "⬇️ Télécharger le formulaire Kobo (XLSForm)",
+  "import_kobo_refresh": "🔄 Actualiser la liste des soumissions",
+  "import_kobo_select": "Choisir une soumission",
+  "import_kobo_button": "📱 Importer cette soumission",
+  "import_kobo_no_submissions": "Aucune soumission trouvée pour l'instant sur ce formulaire.",
+  "import_kobo_needs_config": "L'import KoboToolbox nécessite une configuration (jeton API, URL du serveur, identifiant du formulaire) — contacte l'administrateur."
 }

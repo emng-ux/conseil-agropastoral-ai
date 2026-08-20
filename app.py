@@ -152,7 +152,8 @@ div[data-testid="stExpander"] {
 # que agent/orchestrator.py (qui lit os.environ) fonctionne de façon fiable,
 # en local comme en ligne.
 import os
-for _secret_key in ("ANTHROPIC_API_KEY", "SUPABASE_URL", "SUPABASE_KEY"):
+for _secret_key in ("ANTHROPIC_API_KEY", "SUPABASE_URL", "SUPABASE_KEY",
+                    "KOBO_API_TOKEN", "KOBO_SERVER_URL", "KOBO_ASSET_UID"):
     if _secret_key not in os.environ:
         try:
             if _secret_key in st.secrets:
@@ -423,6 +424,52 @@ def page_dashboard():
                 st.info(_("import_word_needs_key"))
         else:
             st.info(_("chat_unavailable_offline"))
+
+        st.markdown("---")
+        st.subheader(_("import_kobo_title"))
+        from modules.kobo_import import kobo_available, list_kobo_submissions, \
+            build_diagnostic_from_kobo_submission, submission_label
+        if kobo_available():
+            st.caption(_("import_kobo_help"))
+            with st.expander(_("import_kobo_template_title")):
+                st.caption(_("import_kobo_template_help"))
+                from modules.kobo_form_generator import generate_kobo_xlsform_bytes
+                st.download_button(_("import_kobo_template_download"),
+                                    data=generate_kobo_xlsform_bytes(),
+                                    file_name="formulaire_kobo_conseil_agropastoral.xlsx",
+                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+            nom_kobo = st.text_input(_("diagnostic_name"), key="kobo_nom")
+            type_kobo = st.selectbox(_("diagnostic_type"), [_("type_efa"), _("type_op")], key="kobo_type")
+            conseiller_kobo = st.text_input(_("conseiller_name"), key="kobo_conseiller")
+
+            if st.button(_("import_kobo_refresh"), key="kobo_refresh_btn"):
+                st.session_state["kobo_submissions"] = None
+            if st.session_state.get("kobo_submissions") is None:
+                try:
+                    st.session_state["kobo_submissions"] = list_kobo_submissions()
+                except Exception as e:
+                    st.error(f"{_('import_error')} ({e})")
+                    st.session_state["kobo_submissions"] = []
+
+            submissions = st.session_state.get("kobo_submissions") or []
+            if submissions:
+                labels = {submission_label(s): s for s in submissions}
+                chosen_label = st.selectbox(_("import_kobo_select"), list(labels.keys()), key="kobo_select")
+                if nom_kobo and st.button(_("import_kobo_button"), key="kobo_import_btn"):
+                    submission = labels[chosen_label]
+                    diagnostic = build_diagnostic_from_kobo_submission(
+                        submission, nom_kobo, type_kobo, conseiller_kobo, lang)
+                    diagnostic_id = new_diagnostic_id()
+                    st.session_state.current_diagnostic_id = diagnostic_id
+                    st.session_state.current_diagnostic = diagnostic
+                    st.session_state.page = "collecte"
+                    st.success(_("import_word_review_hint"))
+                    st.rerun()
+            else:
+                st.info(_("import_kobo_no_submissions"))
+        else:
+            st.info(_("import_kobo_needs_config"))
 
 
 # ---------------------------------------------------------------------------
