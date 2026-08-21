@@ -285,22 +285,35 @@ with st.sidebar:
         st.caption(_("reveal_names_warning"))
 
     st.markdown("---")
-    page_labels = {
+
+    # Navigation groupée par section, avec un petit intitulé au-dessus de
+    # chaque groupe — plus lisible qu'une pile plate de boutons quand le
+    # nombre de pages augmente.
+    travail_pages = {
         "dashboard": _("nav_dashboard"),
         "collecte": _("nav_collecte"),
         "analyse": _("nav_analyse"),
         "plan": _("nav_plan"),
         "historique": _("nav_historique"),
-        "aide": _("nav_aide"),
     }
+    systeme_pages = {"aide": _("nav_aide")}
+
     _current_account_nav = st.session_state.get("current_account", {})
     from utils.hierarchy import hierarchical_accounts_available
     if hierarchical_accounts_available() and st.session_state.get("current_user"):
-        page_labels["messagerie"] = _("nav_messagerie")
+        systeme_pages = {"messagerie": _("nav_messagerie"), **systeme_pages}
         if _current_account_nav.get("is_admin"):
-            page_labels["administration"] = _("nav_administration")
+            systeme_pages = {"administration": _("nav_administration"), **systeme_pages}
 
-    for key, label in page_labels.items():
+    st.caption(_("nav_group_travail"))
+    for key, label in travail_pages.items():
+        if st.button(label, use_container_width=True,
+                     type="primary" if st.session_state.page == key else "secondary"):
+            st.session_state.page = key
+            st.rerun()
+
+    st.caption(_("nav_group_systeme"))
+    for key, label in systeme_pages.items():
         if st.button(label, use_container_width=True,
                      type="primary" if st.session_state.page == key else "secondary"):
             st.session_state.page = key
@@ -342,10 +355,21 @@ def page_dashboard():
         st.caption(org["nom_organisation"])
     st.title(_("nav_dashboard"))
 
+    diagnostics = list_diagnostics(visible_owners=_get_visible_owners())
+
+    # --- Cartes de statistiques : vue d'ensemble en un coup d'œil ---
+    total = len(diagnostics)
+    validated_count = sum(1 for d in diagnostics if d["validated"])
+    pending_count = total - validated_count
+    s1, s2, s3 = st.columns(3)
+    s1.metric(_("stat_total_diagnostics"), total)
+    s2.metric(_("stat_validated"), validated_count)
+    s3.metric(_("stat_pending"), pending_count)
+
+    st.markdown("---")
     col1, col2 = st.columns([2, 1])
     with col1:
         st.subheader(_("existing_diagnostics"))
-        diagnostics = list_diagnostics(visible_owners=_get_visible_owners())
         if not diagnostics:
             st.info(_("no_diagnostics"))
         for d in diagnostics:
@@ -365,124 +389,129 @@ def page_dashboard():
                     st.rerun()
 
     with col2:
-        st.subheader(_("new_diagnostic"))
-        with st.form("new_diagnostic_form"):
-            nom = st.text_input(_("diagnostic_name"))
-            type_structure = st.selectbox(_("diagnostic_type"), [_("type_efa"), _("type_op")])
-            conseiller = st.text_input(_("conseiller_name"))
-            submitted = st.form_submit_button(_("create"))
-            if submitted and nom:
-                diagnostic_id = new_diagnostic_id()
-                diagnostic = {"nom": nom, "type": type_structure, "conseiller": conseiller, "etoile": {},
-                              "owner_username": st.session_state.get("current_user", "")}
-                save_diagnostic(diagnostic_id, diagnostic)
-                from utils.activity_log import log_action
-                log_action(st.session_state.get("current_user", ""), "creation_diagnostic",
-                           f"Diagnostic créé : {nom}")
-                st.session_state.current_diagnostic_id = diagnostic_id
-                st.session_state.current_diagnostic = diagnostic
-                st.session_state.page = "collecte"
-                st.rerun()
+        new_tab, import_tab = st.tabs([_("tab_nouveau"), _("tab_importer")])
 
-        st.markdown("---")
-        st.subheader(_("import_title"))
-        st.caption(_("import_help"))
-        template_bytes = dataframe_to_excel_bytes(build_template_dataframe(lang))
-        st.download_button(_("download_template"), data=template_bytes,
-                            file_name="modele_diagnostic.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        uploaded = st.file_uploader(_("upload_file"), type=["xlsx", "csv"])
-        if uploaded is not None:
-            try:
-                diagnostic = import_file_to_diagnostic(uploaded)
-                diagnostic_id = new_diagnostic_id()
-                save_diagnostic(diagnostic_id, diagnostic)
-                st.success(_("import_success"))
-                st.session_state.current_diagnostic_id = diagnostic_id
-                st.session_state.current_diagnostic = diagnostic
-                st.session_state.page = "collecte"
-                st.rerun()
-            except Exception:
-                st.error(_("import_error"))
+        with new_tab:
+            with st.form("new_diagnostic_form"):
+                nom = st.text_input(_("diagnostic_name"))
+                type_structure = st.selectbox(_("diagnostic_type"), [_("type_efa"), _("type_op")])
+                conseiller = st.text_input(_("conseiller_name"))
+                submitted = st.form_submit_button(_("create"))
+                if submitted and nom:
+                    diagnostic_id = new_diagnostic_id()
+                    diagnostic = {"nom": nom, "type": type_structure, "conseiller": conseiller, "etoile": {},
+                                  "owner_username": st.session_state.get("current_user", "")}
+                    save_diagnostic(diagnostic_id, diagnostic)
+                    from utils.activity_log import log_action
+                    log_action(st.session_state.get("current_user", ""), "creation_diagnostic",
+                               f"Diagnostic créé : {nom}")
+                    st.session_state.current_diagnostic_id = diagnostic_id
+                    st.session_state.current_diagnostic = diagnostic
+                    st.session_state.page = "collecte"
+                    st.rerun()
 
-        st.markdown("---")
-        st.subheader(_("import_word_title"))
-        if st.session_state.online:
-            from modules.import_word import (word_import_available, extract_text_from_docx,
-                                               extract_diagnostic_from_text,
-                                               build_diagnostic_from_extraction)
-            if word_import_available():
-                st.caption(_("import_word_help"))
-                nom_word = st.text_input(_("diagnostic_name"), key="word_nom")
-                type_word = st.selectbox(_("diagnostic_type"), [_("type_efa"), _("type_op")], key="word_type")
-                conseiller_word = st.text_input(_("conseiller_name"), key="word_conseiller")
-                word_files = st.file_uploader(_("import_word_upload"), type=["docx"],
-                                               accept_multiple_files=True, key="word_files")
-                if word_files and nom_word and st.button(_("import_word_button")):
-                    with st.spinner(_("import_word_progress")):
+        with import_tab:
+            excel_tab, word_tab, kobo_tab = st.tabs(["📊 Excel/CSV", "📄 Word", "📱 Kobo"])
+
+            with excel_tab:
+                st.caption(_("import_help"))
+                template_bytes = dataframe_to_excel_bytes(build_template_dataframe(lang))
+                st.download_button(_("download_template"), data=template_bytes,
+                                    file_name="modele_diagnostic.xlsx",
+                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                uploaded = st.file_uploader(_("upload_file"), type=["xlsx", "csv"])
+                if uploaded is not None:
+                    try:
+                        diagnostic = import_file_to_diagnostic(uploaded)
+                        diagnostic_id = new_diagnostic_id()
+                        save_diagnostic(diagnostic_id, diagnostic)
+                        st.success(_("import_success"))
+                        st.session_state.current_diagnostic_id = diagnostic_id
+                        st.session_state.current_diagnostic = diagnostic
+                        st.session_state.page = "collecte"
+                        st.rerun()
+                    except Exception:
+                        st.error(_("import_error"))
+
+            with word_tab:
+                if st.session_state.online:
+                    from modules.import_word import (word_import_available, extract_text_from_docx,
+                                                       extract_diagnostic_from_text,
+                                                       build_diagnostic_from_extraction)
+                    if word_import_available():
+                        st.caption(_("import_word_help"))
+                        nom_word = st.text_input(_("diagnostic_name"), key="word_nom")
+                        type_word = st.selectbox(_("diagnostic_type"), [_("type_efa"), _("type_op")],
+                                                  key="word_type")
+                        conseiller_word = st.text_input(_("conseiller_name"), key="word_conseiller")
+                        word_files = st.file_uploader(_("import_word_upload"), type=["docx"],
+                                                       accept_multiple_files=True, key="word_files")
+                        if word_files and nom_word and st.button(_("import_word_button")):
+                            with st.spinner(_("import_word_progress")):
+                                try:
+                                    full_text = "\n\n".join(extract_text_from_docx(f) for f in word_files)
+                                    extraction = extract_diagnostic_from_text(full_text, lang)
+                                    diagnostic = build_diagnostic_from_extraction(
+                                        extraction, nom_word, type_word, conseiller_word)
+                                    diagnostic_id = new_diagnostic_id()
+                                    st.session_state.current_diagnostic_id = diagnostic_id
+                                    st.session_state.current_diagnostic = diagnostic
+                                    st.session_state.page = "collecte"
+                                    st.success(_("import_word_review_hint"))
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"{_('import_error')} ({e})")
+                    else:
+                        st.info(_("import_word_needs_key"))
+                else:
+                    st.info(_("chat_unavailable_offline"))
+
+            with kobo_tab:
+                from modules.kobo_import import kobo_available, list_kobo_submissions, \
+                    build_diagnostic_from_kobo_submission, submission_label
+                st.caption(_("import_kobo_help"))
+                with st.expander(_("import_kobo_template_title")):
+                    st.caption(_("import_kobo_template_help"))
+                    from modules.kobo_form_generator import generate_kobo_xlsform_bytes
+                    st.download_button(_("import_kobo_template_download"),
+                                        data=generate_kobo_xlsform_bytes(),
+                                        file_name="formulaire_kobo_conseil_agropastoral.xlsx",
+                                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+                if kobo_available():
+                    nom_kobo = st.text_input(_("diagnostic_name"), key="kobo_nom")
+                    type_kobo = st.selectbox(_("diagnostic_type"), [_("type_efa"), _("type_op")],
+                                              key="kobo_type")
+                    conseiller_kobo = st.text_input(_("conseiller_name"), key="kobo_conseiller")
+
+                    if st.button(_("import_kobo_refresh"), key="kobo_refresh_btn"):
+                        st.session_state["kobo_submissions"] = None
+                    if st.session_state.get("kobo_submissions") is None:
                         try:
-                            full_text = "\n\n".join(extract_text_from_docx(f) for f in word_files)
-                            extraction = extract_diagnostic_from_text(full_text, lang)
-                            diagnostic = build_diagnostic_from_extraction(
-                                extraction, nom_word, type_word, conseiller_word)
+                            st.session_state["kobo_submissions"] = list_kobo_submissions()
+                        except Exception as e:
+                            st.error(f"{_('import_error')} ({e})")
+                            st.session_state["kobo_submissions"] = []
+
+                    submissions = st.session_state.get("kobo_submissions") or []
+                    if submissions:
+                        labels = {submission_label(s): s for s in submissions}
+                        chosen_label = st.selectbox(_("import_kobo_select"), list(labels.keys()),
+                                                     key="kobo_select")
+                        if nom_kobo and st.button(_("import_kobo_button"), key="kobo_import_btn"):
+                            submission = labels[chosen_label]
+                            diagnostic = build_diagnostic_from_kobo_submission(
+                                submission, nom_kobo, type_kobo, conseiller_kobo, lang)
                             diagnostic_id = new_diagnostic_id()
                             st.session_state.current_diagnostic_id = diagnostic_id
                             st.session_state.current_diagnostic = diagnostic
                             st.session_state.page = "collecte"
                             st.success(_("import_word_review_hint"))
                             st.rerun()
-                        except Exception as e:
-                            st.error(f"{_('import_error')} ({e})")
-            else:
-                st.info(_("import_word_needs_key"))
-        else:
-            st.info(_("chat_unavailable_offline"))
-
-        st.markdown("---")
-        st.subheader(_("import_kobo_title"))
-        from modules.kobo_import import kobo_available, list_kobo_submissions, \
-            build_diagnostic_from_kobo_submission, submission_label
-        st.caption(_("import_kobo_help"))
-        with st.expander(_("import_kobo_template_title")):
-            st.caption(_("import_kobo_template_help"))
-            from modules.kobo_form_generator import generate_kobo_xlsform_bytes
-            st.download_button(_("import_kobo_template_download"),
-                                data=generate_kobo_xlsform_bytes(),
-                                file_name="formulaire_kobo_conseil_agropastoral.xlsx",
-                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-
-        if kobo_available():
-            nom_kobo = st.text_input(_("diagnostic_name"), key="kobo_nom")
-            type_kobo = st.selectbox(_("diagnostic_type"), [_("type_efa"), _("type_op")], key="kobo_type")
-            conseiller_kobo = st.text_input(_("conseiller_name"), key="kobo_conseiller")
-
-            if st.button(_("import_kobo_refresh"), key="kobo_refresh_btn"):
-                st.session_state["kobo_submissions"] = None
-            if st.session_state.get("kobo_submissions") is None:
-                try:
-                    st.session_state["kobo_submissions"] = list_kobo_submissions()
-                except Exception as e:
-                    st.error(f"{_('import_error')} ({e})")
-                    st.session_state["kobo_submissions"] = []
-
-            submissions = st.session_state.get("kobo_submissions") or []
-            if submissions:
-                labels = {submission_label(s): s for s in submissions}
-                chosen_label = st.selectbox(_("import_kobo_select"), list(labels.keys()), key="kobo_select")
-                if nom_kobo and st.button(_("import_kobo_button"), key="kobo_import_btn"):
-                    submission = labels[chosen_label]
-                    diagnostic = build_diagnostic_from_kobo_submission(
-                        submission, nom_kobo, type_kobo, conseiller_kobo, lang)
-                    diagnostic_id = new_diagnostic_id()
-                    st.session_state.current_diagnostic_id = diagnostic_id
-                    st.session_state.current_diagnostic = diagnostic
-                    st.session_state.page = "collecte"
-                    st.success(_("import_word_review_hint"))
-                    st.rerun()
-            else:
-                st.info(_("import_kobo_no_submissions"))
-        else:
-            st.info(_("import_kobo_needs_config"))
+                    else:
+                        st.info(_("import_kobo_no_submissions"))
+                else:
+                    st.info(_("import_kobo_needs_config"))
 
 
 # ---------------------------------------------------------------------------
