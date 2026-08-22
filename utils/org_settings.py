@@ -11,7 +11,7 @@ import os
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _LOCAL_PATH = os.path.join(_BASE_DIR, "storage", "_org_settings.json")
 
-_DEFAULTS = {"logo_base64": None, "nom_organisation": "", "devise": "FCFA"}
+_DEFAULTS = {"logo_base64": None, "nom_organisation": "", "devise": "FCFA", "llm_provider": "anthropic"}
 
 _cache = None
 

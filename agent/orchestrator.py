@@ -28,9 +28,12 @@ _MAX_TURNS_TOOL_LOOP = 4  # garde-fou : jamais plus de 4 aller-retours d'outils 
 
 
 def agent_available() -> bool:
-    """L'agent conversationnel nécessite une clé API. Renvoie False sinon
-    (l'appelant doit aussi vérifier la connectivité via utils.connectivity.is_online)."""
-    return bool(os.environ.get("ANTHROPIC_API_KEY"))
+    """L'agent conversationnel nécessite un fournisseur IA configuré (Anthropic,
+    DeepSeek, ou Ollama local — voir agent/llm_providers.py). Renvoie False sinon
+    (l'appelant doit aussi vérifier la connectivité via utils.connectivity.is_online,
+    sauf pour Ollama local qui peut fonctionner sans connexion Internet)."""
+    from agent.llm_providers import provider_available
+    return provider_available()
 
 
 def _branch_field_ids(branch: dict) -> list:
@@ -116,9 +119,8 @@ def run_turn(conversation_history: list, user_message: str, diagnostic: dict,
 
     Lève une exception si l'appel API échoue (l'appelant doit gérer le repli gracieux
     vers le formulaire classique — voir modules/collecte.py)."""
-    import anthropic  # import local : dépendance optionnelle, seulement utile en ligne
+    from agent.llm_providers import call_model
 
-    client = anthropic.Anthropic()
     tools = _build_tools()
     messages = list(conversation_history) + [{"role": "user", "content": user_message}]
 
@@ -127,13 +129,7 @@ def run_turn(conversation_history: list, user_message: str, diagnostic: dict,
     reply_text = ""
 
     for _ in range(_MAX_TURNS_TOOL_LOOP):
-        response = client.messages.create(
-            model=_ANTHROPIC_MODEL,
-            max_tokens=1000,
-            system=_system_prompt(diagnostic, lang),
-            tools=tools,
-            messages=messages,
-        )
+        response = call_model(system=_system_prompt(diagnostic, lang), tools=tools, messages=messages)
 
         messages.append({"role": "assistant", "content": response.content})
 

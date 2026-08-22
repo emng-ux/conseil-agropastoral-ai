@@ -158,7 +158,9 @@ div[data-testid="stExpander"] {
 # en local comme en ligne.
 import os
 for _secret_key in ("ANTHROPIC_API_KEY", "SUPABASE_URL", "SUPABASE_KEY",
-                    "KOBO_API_TOKEN", "KOBO_SERVER_URL", "KOBO_ASSET_UID"):
+                    "KOBO_API_TOKEN", "KOBO_SERVER_URL", "KOBO_ASSET_UID",
+                    "DEEPSEEK_API_KEY", "DEEPSEEK_BASE_URL", "DEEPSEEK_MODEL",
+                    "OLLAMA_HOST", "OLLAMA_MODEL"):
     if _secret_key not in os.environ:
         try:
             if _secret_key in st.secrets:
@@ -722,6 +724,20 @@ def page_analyse():
     _ensure_diagnostic()
     diagnostic = st.session_state.current_diagnostic
     st.title(f"{_('nav_analyse')} — {display_label(diagnostic)}")
+
+    from utils.coherence_checks import run_all_checks
+    anomalies = run_all_checks(diagnostic)
+    with st.expander(_("coherence_title") + (f" ({len(anomalies)})" if anomalies else " ✅"),
+                     expanded=bool(anomalies)):
+        st.caption(_("coherence_help"))
+        if not anomalies:
+            st.success(_("coherence_none"))
+        else:
+            for a in anomalies:
+                if a["niveau"] == "erreur":
+                    st.error("🔴 " + a["message"])
+                else:
+                    st.warning("🟡 " + a["message"])
 
     if st.button(_("run_analysis"), type="primary"):
         st.session_state.pestel = compute_pestel(diagnostic, lang)

@@ -139,6 +139,32 @@ def render_admin_panel(lang: str, current_user: str):
             st.success("✅")
             st.rerun()
 
+        st.markdown("---")
+        st.subheader("🤖 " + ("Fournisseur IA" if lang == "fr" else "AI provider"))
+        st.caption(
+            "Le fournisseur utilisé par le chat IA de collecte. Les clés API/paramètres de "
+            "connexion (DEEPSEEK_API_KEY, OLLAMA_HOST...) se configurent dans les secrets "
+            "Streamlit Cloud, pas ici — ce réglage choisit seulement lequel utiliser."
+            if lang == "fr" else
+            "The provider used by the collection AI chat. API keys/connection settings "
+            "(DEEPSEEK_API_KEY, OLLAMA_HOST...) are configured in Streamlit Cloud secrets, "
+            "not here — this setting only chooses which one to use.")
+        providers = ["anthropic", "deepseek", "ollama"]
+        provider_labels = {
+            "anthropic": "Anthropic (Claude)", "deepseek": "DeepSeek",
+            "ollama": "Ollama (" + ("local" if lang == "fr" else "local") + ")",
+        }
+        current_provider = org.get("llm_provider", "anthropic")
+        idx = providers.index(current_provider) if current_provider in providers else 0
+        chosen_provider = st.selectbox(
+            "Fournisseur" if lang == "fr" else "Provider", providers, index=idx,
+            format_func=lambda p: provider_labels[p], key="org_llm_provider_input")
+        if st.button("Enregistrer le fournisseur" if lang == "fr" else "Save provider",
+                     key="org_llm_provider_save_btn"):
+            update_org_settings(llm_provider=chosen_provider)
+            st.success("✅")
+            st.rerun()
+
     # -------------------------------------------------------------------
     # Onglet 3 : Coûts API (estimation)
     # -------------------------------------------------------------------

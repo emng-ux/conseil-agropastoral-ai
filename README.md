@@ -42,6 +42,8 @@ connexion Internet est disponible.
 - ✅ **Garde-fou budgétaire** : le chat IA est limité à 12 échanges par diagnostic (compteur visible, réinitialisable par un administrateur si besoin) — coûts d'API maîtrisés à grande échelle
 - ✅ **Logo et devise personnalisables** par l'administrateur (logo affiché sur le tableau de bord, devise appliquée automatiquement à tous les montants de l'agent — bilan, marges, plan de financement, exports)
 - ✅ **Page d'Aide intégrée** : guide d'utilisation complet par section, avec possibilité pour l'administrateur d'ajouter des entrées personnalisées (définitions, consignes propres à l'organisation)
+- ✅ **Détection automatique des incohérences** (moteur 100% Python, sans IA) : surfaces négatives ou aberrantes, marges impossibles, bilan déséquilibré, dates invalides — vérifiés à chaque analyse stratégique
+- ✅ **Chat IA multi-fournisseurs** : Anthropic (Claude) par défaut, avec bascule possible vers DeepSeek (moins coûteux) ou Ollama (modèle local, fonctionne hors connexion) — configurable par l'administrateur
 - ✅ **Import KoboToolbox** : formulaire terrain (XLSForm) prêt à déployer, correspondant exactement au schéma de l'étoile du conseil — les soumissions sont remappées directement dans le diagnostic, **sans IA**, pour une fiabilité maximale (complémentaire à l'import Word/Excel)
 - ✅ **Installable comme PWA sur Android** (icône écran d'accueil, plein écran)
 - ✅ **Script d'installation Windows en 1 clic** (`install_windows.bat`)
@@ -71,6 +73,28 @@ Pour un conseiller qui n'a jamais installé le projet sur son ordinateur :
 2. Clic droit sur la page → **Enregistrer sous** → sauvegarde le fichier `install_windows.bat` (ex. sur le Bureau)
 3. Double-clique sur ce fichier : il installe automatiquement Git/Python si besoin (ou indique comment faire), clone le projet, installe les dépendances et lance l'agent
 4. Pour les lancements suivants, utilise `lancer_agent.bat` (créé dans le même dossier que le projet) — bien plus rapide, pas de réinstallation
+
+## Fournisseur IA du chat de collecte (Anthropic / DeepSeek / Ollama local)
+
+Par défaut, l'agent utilise Anthropic (Claude). Deux alternatives sont disponibles,
+sélectionnables dans "⚙️ Administration → 🏢 Organisation → Fournisseur IA" :
+
+- **DeepSeek** (API cloud, généralement moins coûteuse) :
+  ```toml
+  DEEPSEEK_API_KEY = "..."
+  DEEPSEEK_MODEL = "deepseek-chat"        # optionnel, valeur par défaut
+  DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # optionnel, valeur par défaut
+  ```
+- **Ollama** (modèle exécuté en local, aucune connexion Internet requise) :
+  ```toml
+  OLLAMA_HOST = "http://localhost:11434"
+  OLLAMA_MODEL = "llama3.1"               # ou tout autre modèle installé localement
+  ```
+
+⚠️ Le tool-calling (appel d'outils par le modèle) a été conçu et testé en profondeur
+avec Claude. Sa fiabilité avec DeepSeek ou un modèle Ollama local dépend directement
+de la qualité du support d'appel d'outils de ce modèle — à valider par un premier
+test avant un déploiement à grande échelle.
 
 ## Import KoboToolbox (collecte terrain fiable, sans IA)
 
