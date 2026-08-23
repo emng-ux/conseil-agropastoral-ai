@@ -160,7 +160,7 @@ import os
 for _secret_key in ("ANTHROPIC_API_KEY", "SUPABASE_URL", "SUPABASE_KEY",
                     "KOBO_API_TOKEN", "KOBO_SERVER_URL", "KOBO_ASSET_UID",
                     "DEEPSEEK_API_KEY", "DEEPSEEK_BASE_URL", "DEEPSEEK_MODEL",
-                    "OLLAMA_HOST", "OLLAMA_MODEL"):
+                    "OLLAMA_HOST", "OLLAMA_MODEL", "LLM_PROVIDER"):
     if _secret_key not in os.environ:
         try:
             if _secret_key in st.secrets:

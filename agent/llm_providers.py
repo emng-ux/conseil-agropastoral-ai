@@ -34,7 +34,16 @@ class _NormalizedResponse:
 
 
 def get_provider() -> str:
-    """Fournisseur actif : 'anthropic' (défaut), 'deepseek', ou 'ollama'."""
+    """Fournisseur actif : 'anthropic' (défaut), 'deepseek', ou 'ollama'.
+
+    Priorité à la variable d'environnement LLM_PROVIDER (secrets.toml) si elle
+    est explicitement définie — c'est le seul levier disponible en usage local
+    sans Supabase (le panneau Administration n'existe alors pas). Sinon, le
+    réglage choisi par l'administrateur (utils.org_settings, partagé en ligne)
+    prend le relais."""
+    env_provider = os.environ.get("LLM_PROVIDER")
+    if env_provider:
+        return env_provider.lower()
     try:
         from utils.org_settings import get_org_settings
         configured = get_org_settings().get("llm_provider")
@@ -42,7 +51,7 @@ def get_provider() -> str:
             return configured
     except Exception:
         pass
-    return os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    return "anthropic"
 
 
 def provider_available() -> bool:
