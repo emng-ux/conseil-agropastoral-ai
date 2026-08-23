@@ -1,8 +1,10 @@
 """Agent IA de conseil agropastoral — application principale Streamlit.
 
 Fonctionnement hybride : le socle (formulaire, stockage, analyse, export) tourne
-100% en local sans connexion Internet. Le chat IA conversationnel s'active
-uniquement si une connexion est détectée.
+100% en local sans connexion Internet. Le chat IA conversationnel avec un
+fournisseur cloud (Anthropic, DeepSeek) s'active uniquement si une connexion
+est détectée ; le chat avec Ollama local reste disponible même hors ligne,
+puisqu'il ne nécessite aucune connexion Internet.
 """
 import streamlit as st
 import plotly.graph_objects as go
@@ -11,6 +13,7 @@ from utils.i18n import t
 from utils.storage import (new_diagnostic_id, save_diagnostic, load_diagnostic,
                             delete_diagnostic, list_diagnostics, ensure_code)
 from utils.connectivity import is_online
+from agent.llm_providers import get_provider
 from modules.collecte import (branch_keys, branch_label, render_branch_form,
                                branch_completion_ratio)
 from modules.import_data import build_template_dataframe, dataframe_to_excel_bytes, \
@@ -621,7 +624,10 @@ def page_collecte():
     with col1:
         st.plotly_chart(_radar_chart(diagnostic), use_container_width=True)
 
-        if st.session_state.online:
+        # Le chat Ollama local ne dépend pas de la connectivité Internet ;
+        # seuls les fournisseurs cloud (Anthropic, DeepSeek) en ont besoin.
+        chat_can_run = st.session_state.online or get_provider() == "ollama"
+        if chat_can_run:
             from agent.orchestrator import agent_available, run_turn
             if agent_available():
                 st.markdown(f"**{_('nav_collecte')} — 🤖**")
