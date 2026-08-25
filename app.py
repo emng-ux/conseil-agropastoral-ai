@@ -198,6 +198,14 @@ if "page" not in st.session_state:
     st.session_state.page = "dashboard"
 if "online" not in st.session_state:
     st.session_state.online = is_online()
+if st.session_state.online and "synced_this_session" not in st.session_state:
+    # Une tentative par session suffit : pas besoin de le refaire à chaque
+    # interaction. sync_pending_local_to_supabase() ne fait rien si le mode
+    # hybride n'est pas activé, et ne lève jamais d'exception en cas d'échec
+    # réseau (le diagnostic reste simplement en attente).
+    from utils.storage import sync_pending_local_to_supabase
+    st.session_state.sync_result = sync_pending_local_to_supabase()
+    st.session_state.synced_this_session = True
 
 lang = st.session_state.lang
 
@@ -232,8 +240,14 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(_("online_status_online") if st.session_state.online else _("online_status_offline"))
-    from utils.storage import storage_backend_name
+    from utils.storage import storage_backend_name, hybrid_sync_enabled
     st.caption(f"💾 {storage_backend_name()}")
+    if hybrid_sync_enabled():
+        result = st.session_state.get("sync_result")
+        if result and result["synced"]:
+            st.caption(f"🔄 {len(result['synced'])} diagnostic(s) synchronisé(s) vers Supabase")
+        if result and result["failed"]:
+            st.caption(f"⏳ {len(result['failed'])} diagnostic(s) en attente de synchronisation")
 
     if st.session_state.get("current_user"):
         current_account = st.session_state.get("current_account", {})
