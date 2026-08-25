@@ -627,6 +627,10 @@ def page_collecte():
         # Le chat Ollama local ne dépend pas de la connectivité Internet ;
         # seuls les fournisseurs cloud (Anthropic, DeepSeek) en ont besoin.
         chat_can_run = st.session_state.online or get_provider() == "ollama"
+        st.caption(f"🔧 debug — online={st.session_state.online} · "
+                   f"provider={get_provider()!r} · chat_can_run={chat_can_run} · "
+                   f"OLLAMA_HOST={os.environ.get('OLLAMA_HOST')!r} · "
+                   f"LLM_PROVIDER_env={os.environ.get('LLM_PROVIDER')!r}")
         if chat_can_run:
             from agent.orchestrator import agent_available, run_turn
             if agent_available():
